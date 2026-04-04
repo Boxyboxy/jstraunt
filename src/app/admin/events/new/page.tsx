@@ -19,8 +19,8 @@ export default async function NewEventPage() {
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-2xl font-semibold text-stone-900">Create Event</h1>
-        <p className="text-stone-500 text-sm mt-1">Set up a new dining event with menu</p>
+        <h1 className="text-2xl font-semibold text-burgundy-900">Create Event</h1>
+        <p className="text-burgundy-400 text-sm mt-1">Set up a new dining event with menu</p>
       </div>
       <EventForm venues={venues ?? []} action={createEvent} />
     </div>

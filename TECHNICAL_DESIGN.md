@@ -1,6 +1,6 @@
-# Private Dining Experience — Technical Design Document
+# Palette — Technical Design Document
 
-**Version 1.0 · April 2026**
+**Version 1.1 · April 2026**
 **Stack: Next.js 15 (App Router) + Supabase · Single Repo**
 
 ---
@@ -55,10 +55,49 @@ A single Next.js application serving both the public guest site and the admin da
 
 ---
 
+## 1.1 Branding
+
+**Name:** Palette
+**Tagline:** Intimate tasting menu experiences at rotating venues across Singapore.
+
+### Color Palette
+
+| Token | Hex | Usage |
+|-------|-----|-------|
+| Burgundy 700 | `#5C2434` | Primary buttons, CTAs, brand accents |
+| Burgundy 900 | `#3D1623` | Headings, admin sidebar, dark text |
+| Gold 400 | `#D4A855` | Warning badges, highlight accents |
+| Gold 100 | `#F7EDDA` | Warning badge backgrounds |
+| Sage 500 | `#7B8B6F` | Success states, availability indicators |
+| Sage 100 | `#E6EBE2` | Success badge backgrounds |
+| Cream 100 | `#FAF7F2` | Page backgrounds |
+| Cream 300 | `#EDE4D5` | Borders, dividers |
+| Cream 200 | `#F5EFE6` | Card backgrounds, hover states |
+
+### Typography
+
+| Role | Font | Style |
+|------|------|-------|
+| Headings | Oswald (Google Fonts) | Semibold, uppercase, tracking-wide |
+| Body | Geist Sans (default) | Regular weight, clean geometric sans-serif |
+| Mono | Geist Mono | Code blocks, technical content |
+
+Heading font is loaded via `next/font/google` and applied globally via CSS custom property `--font-heading`. All `<h1>`–`<h6>` elements inherit the heading font automatically.
+
+### Brand Guidelines (from Palette Deck)
+
+- **Feeling:** Intimate, warm, subtle casual luxury
+- **Style:** Modern & clean, not tacky, balance tradition with minimalism
+- **Visual motifs:** Checkerboard patterns, circular image crops (future consideration)
+- **Admin sidebar:** Deep burgundy (`burgundy-900`) background
+- **Guest site:** Warm cream backgrounds with burgundy text and gold accents
+
+---
+
 ## 2. Repository Structure
 
 ```
-private-dining/
+palette/
 ├── src/
 │   ├── app/
 │   │   ├── (guest)/                    # Guest-facing routes (public)
@@ -891,7 +930,7 @@ const resend = new Resend(process.env.RESEND_API_KEY)
 
 export async function sendBookingConfirmationEmail(booking: BookingWithDetails) {
   await resend.emails.send({
-    from: 'Your Private Dining <hello@yourdomain.com>',
+    from: 'Palette <hello@yourdomain.com>',
     to: booking.guest.email,
     subject: `Booking Confirmed — ${booking.event.title}`,
     react: BookingConfirmation({ booking }),

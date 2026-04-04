@@ -110,7 +110,7 @@ export default function MenuBuilder({ initialCourses = [], winePairing = false }
       <input type="hidden" name="courses" value={JSON.stringify(courses)} />
 
       <div className="flex items-center justify-between mb-4">
-        <label className="block text-sm font-medium text-stone-700">
+        <label className="block text-sm font-medium text-burgundy-700">
           Menu Courses ({courses.length})
         </label>
         <Button type="button" variant="outline" size="sm" onClick={addCourse}>
@@ -120,8 +120,8 @@ export default function MenuBuilder({ initialCourses = [], winePairing = false }
       </div>
 
       {courses.length === 0 ? (
-        <div className="border border-dashed border-stone-300 rounded-lg p-8 text-center">
-          <p className="text-stone-500 text-sm">No courses yet. Add your first course to build the menu.</p>
+        <div className="border border-dashed border-cream-400 rounded-lg p-8 text-center">
+          <p className="text-burgundy-400 text-sm">No courses yet. Add your first course to build the menu.</p>
         </div>
       ) : (
         <div className="space-y-2">
@@ -131,19 +131,19 @@ export default function MenuBuilder({ initialCourses = [], winePairing = false }
             return (
               <div
                 key={index}
-                className="border border-stone-200 rounded-lg bg-white overflow-hidden"
+                className="border border-cream-300 rounded-lg bg-white overflow-hidden"
               >
                 {/* Header */}
                 <div
-                  className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-stone-50"
+                  className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-cream-100"
                   onClick={() => setExpandedIndex(isExpanded ? null : index)}
                 >
-                  <GripVertical className="h-4 w-4 text-stone-300 flex-shrink-0" />
-                  <span className="text-xs font-medium text-stone-400 w-6">{course.sequence}</span>
-                  <span className="text-sm font-medium text-stone-600 w-28 flex-shrink-0">
+                  <GripVertical className="h-4 w-4 text-cream-400 flex-shrink-0" />
+                  <span className="text-xs font-medium text-burgundy-300 w-6">{course.sequence}</span>
+                  <span className="text-sm font-medium text-burgundy-600 w-28 flex-shrink-0">
                     {course.course_type}
                   </span>
-                  <span className="text-sm text-stone-900 flex-1 truncate">
+                  <span className="text-sm text-burgundy-900 flex-1 truncate">
                     {course.dish_title || 'Untitled dish'}
                   </span>
                   <div className="flex items-center gap-1">
@@ -152,24 +152,24 @@ export default function MenuBuilder({ initialCourses = [], winePairing = false }
                     ))}
                   </div>
                   {isExpanded ? (
-                    <ChevronUp className="h-4 w-4 text-stone-400" />
+                    <ChevronUp className="h-4 w-4 text-burgundy-300" />
                   ) : (
-                    <ChevronDown className="h-4 w-4 text-stone-400" />
+                    <ChevronDown className="h-4 w-4 text-burgundy-300" />
                   )}
                 </div>
 
                 {/* Expanded Editor */}
                 {isExpanded && (
-                  <div className="px-4 pb-4 pt-2 border-t border-stone-100 space-y-4">
+                  <div className="px-4 pb-4 pt-2 border-t border-cream-200 space-y-4">
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-stone-700 mb-1">
+                        <label className="block text-sm font-medium text-burgundy-700 mb-1">
                           Course Type
                         </label>
                         <select
                           value={course.course_type}
                           onChange={(e) => updateCourse(index, 'course_type', e.target.value)}
-                          className="w-full px-3 py-2 border border-stone-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-stone-900 focus:border-transparent"
+                          className="w-full px-3 py-2 border border-cream-400 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-burgundy-900 focus:border-transparent"
                         >
                           {COURSE_TYPES.map((type) => (
                             <option key={type} value={type}>{type}</option>
@@ -185,21 +185,21 @@ export default function MenuBuilder({ initialCourses = [], winePairing = false }
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-stone-700 mb-1">
+                      <label className="block text-sm font-medium text-burgundy-700 mb-1">
                         Description
                       </label>
                       <textarea
                         value={course.description ?? ''}
                         onChange={(e) => updateCourse(index, 'description', e.target.value)}
                         rows={2}
-                        className="w-full px-3 py-2 border border-stone-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-stone-900 focus:border-transparent"
+                        className="w-full px-3 py-2 border border-cream-400 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-burgundy-900 focus:border-transparent"
                         placeholder="Describe the dish..."
                       />
                     </div>
 
                     {/* Dietary tags */}
                     <div>
-                      <label className="block text-sm font-medium text-stone-700 mb-2">
+                      <label className="block text-sm font-medium text-burgundy-700 mb-2">
                         Dietary Tags
                       </label>
                       <div className="flex gap-2">
@@ -210,8 +210,8 @@ export default function MenuBuilder({ initialCourses = [], winePairing = false }
                             onClick={() => toggleTag(index, tag)}
                             className={`px-3 py-1 rounded-full text-xs font-medium border transition-colors ${
                               course.dietary_tags.includes(tag)
-                                ? 'bg-stone-900 text-white border-stone-900'
-                                : 'bg-white text-stone-600 border-stone-300 hover:border-stone-400'
+                                ? 'bg-burgundy-900 text-white border-burgundy-900'
+                                : 'bg-white text-burgundy-600 border-cream-400 hover:border-burgundy-300'
                             }`}
                             title={DIETARY_LABELS[tag]}
                           >
@@ -223,8 +223,8 @@ export default function MenuBuilder({ initialCourses = [], winePairing = false }
 
                     {/* Wine pairing fields */}
                     {winePairing && (
-                      <div className="pt-2 border-t border-stone-100">
-                        <label className="block text-sm font-medium text-stone-700 mb-3">
+                      <div className="pt-2 border-t border-cream-200">
+                        <label className="block text-sm font-medium text-burgundy-700 mb-3">
                           Wine Pairing
                         </label>
                         <div className="grid grid-cols-3 gap-4">

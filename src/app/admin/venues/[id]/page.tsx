@@ -36,8 +36,8 @@ export default async function EditVenuePage({ params }: { params: Promise<{ id: 
     <div>
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-semibold text-stone-900">Edit Venue</h1>
-          <p className="text-stone-500 text-sm mt-1">{venue.name}</p>
+          <h1 className="text-2xl font-semibold text-burgundy-900">Edit Venue</h1>
+          <p className="text-burgundy-400 text-sm mt-1">{venue.name}</p>
         </div>
         <DeleteButton action={deleteAction} label="Delete Venue" />
       </div>

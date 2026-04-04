@@ -54,12 +54,12 @@ export default function ImageUpload({ name, label, currentUrl, onUpload, onRemov
   return (
     <div>
       {label && (
-        <label className="block text-sm font-medium text-stone-700 mb-1">{label}</label>
+        <label className="block text-sm font-medium text-burgundy-700 mb-1">{label}</label>
       )}
       <input type="hidden" name={name} value={url} />
 
       {url ? (
-        <div className="relative w-40 h-28 rounded-lg overflow-hidden border border-stone-200">
+        <div className="relative w-40 h-28 rounded-lg overflow-hidden border border-cream-300">
           <Image src={url} alt="Uploaded" fill className="object-cover" />
           <button
             type="button"
@@ -74,7 +74,7 @@ export default function ImageUpload({ name, label, currentUrl, onUpload, onRemov
           type="button"
           onClick={() => inputRef.current?.click()}
           disabled={uploading}
-          className="flex items-center justify-center gap-2 w-40 h-28 rounded-lg border-2 border-dashed border-stone-300 text-stone-500 hover:border-stone-400 hover:text-stone-600 transition-colors disabled:opacity-50"
+          className="flex items-center justify-center gap-2 w-40 h-28 rounded-lg border-2 border-dashed border-cream-400 text-burgundy-400 hover:border-burgundy-300 hover:text-burgundy-600 transition-colors disabled:opacity-50"
         >
           {uploading ? (
             <Loader2 className="h-5 w-5 animate-spin" />

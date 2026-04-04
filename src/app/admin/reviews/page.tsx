@@ -23,16 +23,16 @@ export default async function ReviewsPage() {
     <div>
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-semibold text-stone-900">Reviews</h1>
-          <p className="text-stone-500 text-sm mt-1">Curate guest testimonials for the public site</p>
+          <h1 className="text-2xl font-semibold text-burgundy-900">Reviews</h1>
+          <p className="text-burgundy-400 text-sm mt-1">Curate guest testimonials for the public site</p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Add review form */}
         <div className="lg:col-span-1">
-          <div className="bg-white rounded-lg border border-stone-200 p-6 sticky top-8">
-            <h2 className="text-lg font-medium text-stone-900 mb-4">Add Review</h2>
+          <div className="bg-white rounded-lg border border-cream-300 p-6 sticky top-8">
+            <h2 className="text-lg font-medium text-burgundy-900 mb-4">Add Review</h2>
             <ReviewFormWrapper events={events ?? []} />
           </div>
         </div>
@@ -45,13 +45,13 @@ export default async function ReviewsPage() {
                 <div
                   key={review.id}
                   className={`bg-white rounded-lg border p-5 ${
-                    !review.is_visible ? 'border-stone-200 opacity-60' : 'border-stone-200'
+                    !review.is_visible ? 'border-cream-300 opacity-60' : 'border-cream-300'
                   }`}
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="font-medium text-stone-900 text-sm">
+                        <span className="font-medium text-burgundy-900 text-sm">
                           {review.guest_name}
                         </span>
                         <div className="flex gap-0.5">
@@ -66,7 +66,7 @@ export default async function ReviewsPage() {
                           <Badge variant="default">Hidden</Badge>
                         )}
                       </div>
-                      <p className="text-sm text-stone-600 italic">
+                      <p className="text-sm text-burgundy-600 italic">
                         &ldquo;{review.quote}&rdquo;
                       </p>
                     </div>
@@ -83,9 +83,9 @@ export default async function ReviewsPage() {
               ))}
             </div>
           ) : (
-            <div className="bg-white rounded-lg border border-stone-200 p-12 text-center">
-              <Star className="h-8 w-8 text-stone-300 mx-auto mb-3" />
-              <p className="text-stone-500">No reviews yet. Add your first one.</p>
+            <div className="bg-white rounded-lg border border-cream-300 p-12 text-center">
+              <Star className="h-8 w-8 text-cream-400 mx-auto mb-3" />
+              <p className="text-burgundy-400">No reviews yet. Add your first one.</p>
             </div>
           )}
         </div>

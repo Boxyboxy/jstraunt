@@ -51,7 +51,7 @@ export default function VenueForm({ venue, action }: VenueFormProps) {
       />
 
       <div>
-        <label htmlFor="description" className="block text-sm font-medium text-stone-700 mb-1">
+        <label htmlFor="description" className="block text-sm font-medium text-burgundy-700 mb-1">
           Description
         </label>
         <textarea
@@ -59,7 +59,7 @@ export default function VenueForm({ venue, action }: VenueFormProps) {
           name="description"
           rows={4}
           defaultValue={venue?.description ?? ''}
-          className="w-full px-3 py-2 border border-stone-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-stone-900 focus:border-transparent"
+          className="w-full px-3 py-2 border border-cream-400 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-burgundy-900 focus:border-transparent"
           placeholder="Describe the atmosphere, style, and history of this space..."
         />
       </div>
@@ -77,15 +77,15 @@ export default function VenueForm({ venue, action }: VenueFormProps) {
       />
 
       <div>
-        <label htmlFor="kitchen_notes" className="block text-sm font-medium text-stone-700 mb-1">
-          Kitchen Notes <span className="text-stone-400 font-normal">(internal only)</span>
+        <label htmlFor="kitchen_notes" className="block text-sm font-medium text-burgundy-700 mb-1">
+          Kitchen Notes <span className="text-burgundy-300 font-normal">(internal only)</span>
         </label>
         <textarea
           id="kitchen_notes"
           name="kitchen_notes"
           rows={3}
           defaultValue={venue?.kitchen_notes ?? ''}
-          className="w-full px-3 py-2 border border-stone-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-stone-900 focus:border-transparent"
+          className="w-full px-3 py-2 border border-cream-400 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-burgundy-900 focus:border-transparent"
           placeholder="Equipment, access notes, parking..."
         />
       </div>

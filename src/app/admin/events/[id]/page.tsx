@@ -65,13 +65,13 @@ export default async function EditEventPage({ params }: { params: Promise<{ id: 
     <div>
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-semibold text-stone-900">Edit Event</h1>
-          <p className="text-stone-500 text-sm mt-1">{event.title}</p>
+          <h1 className="text-2xl font-semibold text-burgundy-900">Edit Event</h1>
+          <p className="text-burgundy-400 text-sm mt-1">{event.title}</p>
         </div>
         <div className="flex items-center gap-4">
           <Link
             href={`/admin/events/${id}/bookings`}
-            className="inline-flex items-center gap-2 text-sm text-stone-600 hover:text-stone-900"
+            className="inline-flex items-center gap-2 text-sm text-burgundy-600 hover:text-burgundy-900"
           >
             <Users className="h-4 w-4" />
             View Bookings ({event.booked_seats})
@@ -83,27 +83,27 @@ export default async function EditEventPage({ params }: { params: Promise<{ id: 
 
       {/* Quick stats */}
       <div className="grid grid-cols-4 gap-4 mb-8">
-        <div className="bg-white border border-stone-200 rounded-lg p-4">
-          <p className="text-xs text-stone-500">Date</p>
-          <p className="text-sm font-medium text-stone-900 mt-1">
+        <div className="bg-white border border-cream-300 rounded-lg p-4">
+          <p className="text-xs text-burgundy-400">Date</p>
+          <p className="text-sm font-medium text-burgundy-900 mt-1">
             {formatShortDate(event.event_date)} at {formatTime(event.event_time)}
           </p>
         </div>
-        <div className="bg-white border border-stone-200 rounded-lg p-4">
-          <p className="text-xs text-stone-500">Seats</p>
-          <p className="text-sm font-medium text-stone-900 mt-1">
+        <div className="bg-white border border-cream-300 rounded-lg p-4">
+          <p className="text-xs text-burgundy-400">Seats</p>
+          <p className="text-sm font-medium text-burgundy-900 mt-1">
             {event.booked_seats} / {event.total_seats} booked
           </p>
         </div>
-        <div className="bg-white border border-stone-200 rounded-lg p-4">
-          <p className="text-xs text-stone-500">Price</p>
-          <p className="text-sm font-medium text-stone-900 mt-1">
+        <div className="bg-white border border-cream-300 rounded-lg p-4">
+          <p className="text-xs text-burgundy-400">Price</p>
+          <p className="text-sm font-medium text-burgundy-900 mt-1">
             {formatCurrency(event.price_per_seat)}/seat
           </p>
         </div>
-        <div className="bg-white border border-stone-200 rounded-lg p-4">
-          <p className="text-xs text-stone-500">Revenue (projected)</p>
-          <p className="text-sm font-medium text-stone-900 mt-1">
+        <div className="bg-white border border-cream-300 rounded-lg p-4">
+          <p className="text-xs text-burgundy-400">Revenue (projected)</p>
+          <p className="text-sm font-medium text-burgundy-900 mt-1">
             {formatCurrency(event.booked_seats * event.price_per_seat)}
           </p>
         </div>

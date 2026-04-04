@@ -48,8 +48,8 @@ export default function DishesManager({ dishes, events }: DishesManagerProps) {
       </div>
 
       {showForm && (
-        <div className="bg-white rounded-lg border border-stone-200 p-6 mb-6">
-          <h2 className="text-lg font-medium text-stone-900 mb-4">Add Past Dish</h2>
+        <div className="bg-white rounded-lg border border-cream-300 p-6 mb-6">
+          <h2 className="text-lg font-medium text-burgundy-900 mb-4">Add Past Dish</h2>
           <form action={handleSubmit} className="space-y-4">
             <Input
               id="dish_name"
@@ -59,14 +59,14 @@ export default function DishesManager({ dishes, events }: DishesManagerProps) {
               placeholder="e.g. Hamachi Crudo"
             />
             <div>
-              <label htmlFor="description" className="block text-sm font-medium text-stone-700 mb-1">
+              <label htmlFor="description" className="block text-sm font-medium text-burgundy-700 mb-1">
                 Description
               </label>
               <textarea
                 id="description"
                 name="description"
                 rows={2}
-                className="w-full px-3 py-2 border border-stone-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-stone-900 focus:border-transparent"
+                className="w-full px-3 py-2 border border-cream-400 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-burgundy-900 focus:border-transparent"
                 placeholder="Brief description of the dish..."
               />
             </div>
@@ -77,13 +77,13 @@ export default function DishesManager({ dishes, events }: DishesManagerProps) {
               placeholder="e.g. Starter, Main, Dessert"
             />
             <div>
-              <label htmlFor="event_id" className="block text-sm font-medium text-stone-700 mb-1">
-                Event <span className="text-stone-400 font-normal">(optional)</span>
+              <label htmlFor="event_id" className="block text-sm font-medium text-burgundy-700 mb-1">
+                Event <span className="text-burgundy-300 font-normal">(optional)</span>
               </label>
               <select
                 id="event_id"
                 name="event_id"
-                className="w-full px-3 py-2 border border-stone-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-stone-900 focus:border-transparent"
+                className="w-full px-3 py-2 border border-cream-400 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-burgundy-900 focus:border-transparent"
               >
                 <option value="">None</option>
                 {events.map((e) => (
@@ -106,8 +106,8 @@ export default function DishesManager({ dishes, events }: DishesManagerProps) {
       {dishes.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {dishes.map((dish) => (
-            <div key={dish.id} className="bg-white rounded-lg border border-stone-200 overflow-hidden">
-              <div className="aspect-video bg-stone-100 relative">
+            <div key={dish.id} className="bg-white rounded-lg border border-cream-300 overflow-hidden">
+              <div className="aspect-video bg-cream-200 relative">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={dish.photo_url}
@@ -118,18 +118,18 @@ export default function DishesManager({ dishes, events }: DishesManagerProps) {
               <div className="p-4">
                 <div className="flex items-start justify-between">
                   <div>
-                    <h3 className="font-medium text-stone-900 text-sm">{dish.dish_name}</h3>
+                    <h3 className="font-medium text-burgundy-900 text-sm">{dish.dish_name}</h3>
                     {dish.course_type && (
                       <Badge variant="default" className="mt-1">{dish.course_type}</Badge>
                     )}
                     {dish.description && (
-                      <p className="text-xs text-stone-500 mt-1 line-clamp-2">{dish.description}</p>
+                      <p className="text-xs text-burgundy-400 mt-1 line-clamp-2">{dish.description}</p>
                     )}
                   </div>
                   <button
                     onClick={() => handleDelete(dish.id)}
                     disabled={isPending}
-                    className="p-1.5 rounded-md text-stone-400 hover:bg-red-50 hover:text-red-500 transition-colors"
+                    className="p-1.5 rounded-md text-burgundy-300 hover:bg-red-50 hover:text-red-500 transition-colors"
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>
@@ -139,9 +139,9 @@ export default function DishesManager({ dishes, events }: DishesManagerProps) {
           ))}
         </div>
       ) : (
-        <div className="bg-white rounded-lg border border-stone-200 p-12 text-center">
-          <UtensilsCrossed className="h-8 w-8 text-stone-300 mx-auto mb-3" />
-          <p className="text-stone-500">No past dishes yet. Upload photos to build your gallery.</p>
+        <div className="bg-white rounded-lg border border-cream-300 p-12 text-center">
+          <UtensilsCrossed className="h-8 w-8 text-cream-400 mx-auto mb-3" />
+          <p className="text-burgundy-400">No past dishes yet. Upload photos to build your gallery.</p>
         </div>
       )}
     </div>

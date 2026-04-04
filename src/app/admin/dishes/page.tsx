@@ -19,8 +19,8 @@ export default async function DishesPage() {
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-2xl font-semibold text-stone-900">Past Dishes</h1>
-        <p className="text-stone-500 text-sm mt-1">Manage your dish portfolio and gallery</p>
+        <h1 className="text-2xl font-semibold text-burgundy-900">Past Dishes</h1>
+        <p className="text-burgundy-400 text-sm mt-1">Manage your dish portfolio and gallery</p>
       </div>
 
       <DishesManager dishes={dishes ?? []} events={events ?? []} />

@@ -30,7 +30,7 @@ export default function ReviewActions({
         className={`p-1.5 rounded-md transition-colors ${
           isFeatured
             ? 'text-amber-500 hover:bg-amber-50'
-            : 'text-stone-400 hover:bg-stone-100 hover:text-stone-600'
+            : 'text-burgundy-300 hover:bg-cream-200 hover:text-burgundy-600'
         }`}
         title={isFeatured ? 'Unfeature' : 'Feature on homepage'}
       >
@@ -41,8 +41,8 @@ export default function ReviewActions({
         onClick={() => startTransition(() => onToggleVisible(id, !isVisible))}
         className={`p-1.5 rounded-md transition-colors ${
           isVisible
-            ? 'text-stone-600 hover:bg-stone-100'
-            : 'text-stone-400 hover:bg-stone-100'
+            ? 'text-burgundy-600 hover:bg-cream-200'
+            : 'text-burgundy-300 hover:bg-cream-200'
         }`}
         title={isVisible ? 'Hide from site' : 'Show on site'}
       >
@@ -55,7 +55,7 @@ export default function ReviewActions({
             startTransition(() => onDelete(id))
           }
         }}
-        className="p-1.5 rounded-md text-stone-400 hover:bg-red-50 hover:text-red-500 transition-colors"
+        className="p-1.5 rounded-md text-burgundy-300 hover:bg-red-50 hover:text-red-500 transition-colors"
         title="Delete review"
       >
         <Trash2 className="h-4 w-4" />

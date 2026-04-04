@@ -7,9 +7,9 @@ interface BadgeProps {
 }
 
 const variantStyles: Record<BadgeVariant, string> = {
-  default: 'bg-stone-100 text-stone-700',
-  success: 'bg-green-100 text-green-700',
-  warning: 'bg-amber-100 text-amber-700',
+  default: 'bg-cream-200 text-burgundy-700',
+  success: 'bg-sage-100 text-sage-700',
+  warning: 'bg-gold-100 text-gold-800',
   danger: 'bg-red-100 text-red-700',
   info: 'bg-blue-100 text-blue-700',
 }

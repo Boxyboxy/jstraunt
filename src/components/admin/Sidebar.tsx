@@ -36,10 +36,10 @@ export default function Sidebar() {
   }
 
   return (
-    <aside className="w-64 bg-stone-900 text-stone-300 flex flex-col min-h-screen">
-      <div className="p-6 border-b border-stone-800">
-        <h1 className="text-lg font-semibold text-white">Private Dining</h1>
-        <p className="text-xs text-stone-500 mt-0.5">Admin Dashboard</p>
+    <aside className="w-64 bg-burgundy-900 text-burgundy-200 flex flex-col min-h-screen">
+      <div className="p-6 border-b border-burgundy-800">
+        <h1 className="text-lg font-heading font-semibold uppercase tracking-wide text-white">Palette</h1>
+        <p className="text-xs text-burgundy-400 mt-0.5">Admin Dashboard</p>
       </div>
 
       <nav className="flex-1 p-4 space-y-1">
@@ -55,8 +55,8 @@ export default function Sidebar() {
               href={item.href}
               className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors ${
                 isActive
-                  ? 'bg-stone-800 text-white'
-                  : 'hover:bg-stone-800/50 hover:text-white'
+                  ? 'bg-burgundy-800 text-white'
+                  : 'hover:bg-burgundy-800/50 hover:text-white'
               }`}
             >
               <item.icon className="h-4 w-4" />
@@ -66,10 +66,10 @@ export default function Sidebar() {
         })}
       </nav>
 
-      <div className="p-4 border-t border-stone-800">
+      <div className="p-4 border-t border-burgundy-800">
         <button
           onClick={handleSignOut}
-          className="flex items-center gap-3 px-3 py-2 rounded-md text-sm hover:bg-stone-800/50 hover:text-white transition-colors w-full"
+          className="flex items-center gap-3 px-3 py-2 rounded-md text-sm hover:bg-burgundy-800/50 hover:text-white transition-colors w-full"
         >
           <LogOut className="h-4 w-4" />
           Sign out

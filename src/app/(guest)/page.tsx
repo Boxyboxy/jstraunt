@@ -46,7 +46,7 @@ export default async function HomePage() {
   return (
     <div>
       {/* Hero Section */}
-      <section className="bg-stone-900 text-white">
+      <section className="bg-burgundy-900 text-white">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-24 md:py-32">
           <div className="max-w-2xl">
             <h1 className="text-4xl md:text-5xl font-semibold leading-tight">
@@ -54,15 +54,15 @@ export default async function HomePage() {
               <br />
               extraordinary flavors.
             </h1>
-            <p className="mt-4 text-lg text-stone-400">
+            <p className="mt-4 text-lg text-burgundy-300">
               Multi-course tasting menus at rotating venues across San Francisco.
               Limited seats. Unforgettable evenings.
             </p>
             {nextEvent && (
-              <div className="mt-8 p-6 bg-stone-800 rounded-lg">
-                <p className="text-xs uppercase tracking-wide text-stone-400 mb-2">Next Event</p>
+              <div className="mt-8 p-6 bg-burgundy-800 rounded-lg">
+                <p className="text-xs uppercase tracking-wide text-burgundy-300 mb-2">Next Event</p>
                 <h2 className="text-xl font-medium">{nextEvent.title}</h2>
-                <p className="text-stone-400 text-sm mt-1">
+                <p className="text-burgundy-300 text-sm mt-1">
                   {new Date(nextEvent.event_date + 'T00:00:00').toLocaleDateString('en-US', {
                     weekday: 'long',
                     month: 'long',
@@ -72,13 +72,13 @@ export default async function HomePage() {
                   {venueName && ` \u2014 ${venueName}`}
                 </p>
                 <div className="flex items-center justify-between mt-4">
-                  <p className="text-sm text-stone-400">
+                  <p className="text-sm text-burgundy-300">
                     {nextEvent.total_seats - nextEvent.booked_seats} of {nextEvent.total_seats} seats remaining
                     &middot; ${nextEvent.price_per_seat}/person
                   </p>
                   <Link
                     href={`/events/${nextEvent.slug}`}
-                    className="inline-flex items-center gap-1 bg-white text-stone-900 px-4 py-2 rounded-md text-sm font-medium hover:bg-stone-100 transition-colors"
+                    className="inline-flex items-center gap-1 bg-white text-burgundy-900 px-4 py-2 rounded-md text-sm font-medium hover:bg-cream-200 transition-colors"
                   >
                     View Event
                     <ArrowRight className="h-4 w-4" />
@@ -90,7 +90,7 @@ export default async function HomePage() {
               <div className="mt-8">
                 <Link
                   href="/events"
-                  className="inline-flex items-center gap-2 bg-white text-stone-900 px-6 py-3 rounded-md text-sm font-medium hover:bg-stone-100 transition-colors"
+                  className="inline-flex items-center gap-2 bg-white text-burgundy-900 px-6 py-3 rounded-md text-sm font-medium hover:bg-cream-200 transition-colors"
                 >
                   View Events
                   <ArrowRight className="h-4 w-4" />
@@ -104,7 +104,7 @@ export default async function HomePage() {
       {/* Reviews Section */}
       {reviews && reviews.length > 0 && (
         <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-          <h2 className="text-2xl font-semibold text-stone-900 text-center mb-12">
+          <h2 className="text-2xl font-semibold text-burgundy-900 text-center mb-12">
             What our guests say
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -115,10 +115,10 @@ export default async function HomePage() {
                     <span key={i} className="text-amber-500">&#9733;</span>
                   ))}
                 </div>
-                <blockquote className="text-stone-600 text-sm italic leading-relaxed">
+                <blockquote className="text-burgundy-600 text-sm italic leading-relaxed">
                   &ldquo;{review.quote}&rdquo;
                 </blockquote>
-                <p className="mt-3 text-xs font-medium text-stone-400 uppercase tracking-wide">
+                <p className="mt-3 text-xs font-medium text-burgundy-300 uppercase tracking-wide">
                   {review.guest_name}
                 </p>
               </div>
@@ -128,17 +128,17 @@ export default async function HomePage() {
       )}
 
       {/* CTA Section */}
-      <section className="bg-stone-100">
+      <section className="bg-cream-200">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
-          <h2 className="text-2xl font-semibold text-stone-900">
+          <h2 className="text-2xl font-semibold text-burgundy-900">
             Ready for an unforgettable evening?
           </h2>
-          <p className="mt-2 text-stone-500">
+          <p className="mt-2 text-burgundy-400">
             Browse our upcoming events and book your seat at the table.
           </p>
           <Link
             href="/events"
-            className="mt-6 inline-flex items-center gap-2 bg-stone-900 text-white px-6 py-3 rounded-md text-sm font-medium hover:bg-stone-800 transition-colors"
+            className="mt-6 inline-flex items-center gap-2 bg-burgundy-900 text-white px-6 py-3 rounded-md text-sm font-medium hover:bg-burgundy-800 transition-colors"
           >
             View All Events
             <ArrowRight className="h-4 w-4" />

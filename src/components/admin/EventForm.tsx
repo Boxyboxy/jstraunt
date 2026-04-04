@@ -49,7 +49,7 @@ export default function EventForm({ event, venues, initialCourses = [], action }
 
       {/* Basic Info */}
       <section className="space-y-4">
-        <h2 className="text-lg font-medium text-stone-900 border-b border-stone-200 pb-2">
+        <h2 className="text-lg font-medium text-burgundy-900 border-b border-cream-300 pb-2">
           Event Details
         </h2>
 
@@ -78,13 +78,13 @@ export default function EventForm({ event, venues, initialCourses = [], action }
             placeholder="spring-omakase-loft"
             error={errors?.slug?.join(', ')}
           />
-          <p className="text-xs text-stone-400 mt-1">
+          <p className="text-xs text-burgundy-300 mt-1">
             URL: /events/{slug || '...'}
           </p>
         </div>
 
         <div>
-          <label htmlFor="venue_id" className="block text-sm font-medium text-stone-700 mb-1">
+          <label htmlFor="venue_id" className="block text-sm font-medium text-burgundy-700 mb-1">
             Venue
           </label>
           <select
@@ -92,7 +92,7 @@ export default function EventForm({ event, venues, initialCourses = [], action }
             name="venue_id"
             required
             defaultValue={event?.venue_id ?? ''}
-            className="w-full px-3 py-2 border border-stone-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-stone-900 focus:border-transparent"
+            className="w-full px-3 py-2 border border-cream-400 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-burgundy-900 focus:border-transparent"
           >
             <option value="" disabled>Select a venue</option>
             {venues.map((v) => (
@@ -102,7 +102,7 @@ export default function EventForm({ event, venues, initialCourses = [], action }
         </div>
 
         <div>
-          <label htmlFor="description" className="block text-sm font-medium text-stone-700 mb-1">
+          <label htmlFor="description" className="block text-sm font-medium text-burgundy-700 mb-1">
             Description
           </label>
           <textarea
@@ -110,7 +110,7 @@ export default function EventForm({ event, venues, initialCourses = [], action }
             name="description"
             rows={3}
             defaultValue={event?.description ?? ''}
-            className="w-full px-3 py-2 border border-stone-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-stone-900 focus:border-transparent"
+            className="w-full px-3 py-2 border border-cream-400 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-burgundy-900 focus:border-transparent"
             placeholder="Describe the theme or concept for this event..."
           />
         </div>
@@ -118,7 +118,7 @@ export default function EventForm({ event, venues, initialCourses = [], action }
 
       {/* Date & Time */}
       <section className="space-y-4">
-        <h2 className="text-lg font-medium text-stone-900 border-b border-stone-200 pb-2">
+        <h2 className="text-lg font-medium text-burgundy-900 border-b border-cream-300 pb-2">
           Date &amp; Capacity
         </h2>
 
@@ -167,7 +167,7 @@ export default function EventForm({ event, venues, initialCourses = [], action }
 
       {/* Pricing */}
       <section className="space-y-4">
-        <h2 className="text-lg font-medium text-stone-900 border-b border-stone-200 pb-2">
+        <h2 className="text-lg font-medium text-burgundy-900 border-b border-cream-300 pb-2">
           Pricing
         </h2>
 
@@ -195,9 +195,9 @@ export default function EventForm({ event, venues, initialCourses = [], action }
               type="checkbox"
               checked={winePairing}
               onChange={(e) => setWinePairing(e.target.checked)}
-              className="rounded border-stone-300 text-stone-900 focus:ring-stone-900"
+              className="rounded border-cream-400 text-burgundy-900 focus:ring-burgundy-900"
             />
-            <span className="text-sm font-medium text-stone-700">
+            <span className="text-sm font-medium text-burgundy-700">
               Offer wine pairing add-on
             </span>
           </label>
@@ -220,14 +220,14 @@ export default function EventForm({ event, venues, initialCourses = [], action }
 
       {/* Menu Builder */}
       <section>
-        <h2 className="text-lg font-medium text-stone-900 border-b border-stone-200 pb-2 mb-4">
+        <h2 className="text-lg font-medium text-burgundy-900 border-b border-cream-300 pb-2 mb-4">
           Menu
         </h2>
         <MenuBuilder initialCourses={initialCourses} winePairing={winePairing} />
       </section>
 
       {/* Submit */}
-      <div className="flex gap-3 pt-4 border-t border-stone-200">
+      <div className="flex gap-3 pt-4 border-t border-cream-300">
         <Button type="submit" disabled={isPending}>
           {isPending ? 'Saving...' : event ? 'Update Event' : 'Create Event'}
         </Button>

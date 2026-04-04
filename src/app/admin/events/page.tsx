@@ -30,12 +30,12 @@ export default async function EventsPage() {
     <div>
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-semibold text-stone-900">Events</h1>
-          <p className="text-stone-500 text-sm mt-1">Manage your dining events and menus</p>
+          <h1 className="text-2xl font-semibold text-burgundy-900">Events</h1>
+          <p className="text-burgundy-400 text-sm mt-1">Manage your dining events and menus</p>
         </div>
         <Link
           href="/admin/events/new"
-          className="inline-flex items-center gap-2 bg-stone-900 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-stone-800 transition-colors"
+          className="inline-flex items-center gap-2 bg-burgundy-900 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-burgundy-800 transition-colors"
         >
           <Plus className="h-4 w-4" />
           Create Event
@@ -43,46 +43,46 @@ export default async function EventsPage() {
       </div>
 
       {events && events.length > 0 ? (
-        <div className="bg-white rounded-lg border border-stone-200 overflow-hidden">
+        <div className="bg-white rounded-lg border border-cream-300 overflow-hidden">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-stone-200 bg-stone-50">
-                <th className="text-left text-xs font-medium text-stone-500 uppercase tracking-wide px-6 py-3">Event</th>
-                <th className="text-left text-xs font-medium text-stone-500 uppercase tracking-wide px-6 py-3">Date</th>
-                <th className="text-left text-xs font-medium text-stone-500 uppercase tracking-wide px-6 py-3">Seats</th>
-                <th className="text-left text-xs font-medium text-stone-500 uppercase tracking-wide px-6 py-3">Price</th>
-                <th className="text-left text-xs font-medium text-stone-500 uppercase tracking-wide px-6 py-3">Status</th>
+              <tr className="border-b border-cream-300 bg-cream-100">
+                <th className="text-left text-xs font-medium text-burgundy-400 uppercase tracking-wide px-6 py-3">Event</th>
+                <th className="text-left text-xs font-medium text-burgundy-400 uppercase tracking-wide px-6 py-3">Date</th>
+                <th className="text-left text-xs font-medium text-burgundy-400 uppercase tracking-wide px-6 py-3">Seats</th>
+                <th className="text-left text-xs font-medium text-burgundy-400 uppercase tracking-wide px-6 py-3">Price</th>
+                <th className="text-left text-xs font-medium text-burgundy-400 uppercase tracking-wide px-6 py-3">Status</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-stone-100">
+            <tbody className="divide-y divide-cream-200">
               {events.map((event) => {
                 const badge = STATUS_BADGES[event.status]
                 const fillPercent = Math.round((event.booked_seats / event.total_seats) * 100)
 
                 return (
-                  <tr key={event.id} className="hover:bg-stone-50">
+                  <tr key={event.id} className="hover:bg-cream-100">
                     <td className="px-6 py-4">
-                      <Link href={`/admin/events/${event.id}`} className="font-medium text-stone-900 hover:underline">
+                      <Link href={`/admin/events/${event.id}`} className="font-medium text-burgundy-900 hover:underline">
                         {event.title}
                       </Link>
                     </td>
-                    <td className="px-6 py-4 text-sm text-stone-600">
+                    <td className="px-6 py-4 text-sm text-burgundy-600">
                       {formatShortDate(event.event_date)} at {formatTime(event.event_time)}
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
-                        <span className="text-sm text-stone-600">
+                        <span className="text-sm text-burgundy-600">
                           {event.booked_seats}/{event.total_seats}
                         </span>
-                        <div className="w-16 h-1.5 bg-stone-200 rounded-full">
+                        <div className="w-16 h-1.5 bg-cream-300 rounded-full">
                           <div
-                            className="h-1.5 bg-stone-900 rounded-full"
+                            className="h-1.5 bg-burgundy-900 rounded-full"
                             style={{ width: `${fillPercent}%` }}
                           />
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-sm text-stone-600">
+                    <td className="px-6 py-4 text-sm text-burgundy-600">
                       {formatCurrency(event.price_per_seat)}
                     </td>
                     <td className="px-6 py-4">
@@ -95,10 +95,10 @@ export default async function EventsPage() {
           </table>
         </div>
       ) : (
-        <div className="bg-white rounded-lg border border-stone-200 p-12 text-center">
-          <CalendarDays className="h-8 w-8 text-stone-300 mx-auto mb-3" />
-          <p className="text-stone-500">No events yet.</p>
-          <Link href="/admin/events/new" className="text-stone-900 underline text-sm mt-1 inline-block">
+        <div className="bg-white rounded-lg border border-cream-300 p-12 text-center">
+          <CalendarDays className="h-8 w-8 text-cream-400 mx-auto mb-3" />
+          <p className="text-burgundy-400">No events yet.</p>
+          <Link href="/admin/events/new" className="text-burgundy-900 underline text-sm mt-1 inline-block">
             Create your first event
           </Link>
         </div>

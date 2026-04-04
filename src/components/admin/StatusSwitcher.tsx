@@ -28,7 +28,7 @@ export default function StatusSwitcher({ currentStatus, onStatusChange }: Status
       onChange={(e) => {
         startTransition(async () => { await onStatusChange(e.target.value) })
       }}
-      className="px-3 py-1.5 border border-stone-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-stone-900 focus:border-transparent disabled:opacity-50"
+      className="px-3 py-1.5 border border-cream-400 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-burgundy-900 focus:border-transparent disabled:opacity-50"
     >
       {STATUS_OPTIONS.map((opt) => (
         <option key={opt.value} value={opt.value}>{opt.label}</option>

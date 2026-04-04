@@ -24,7 +24,7 @@ export default function DeleteButton({ action, label }: DeleteButtonProps) {
 
   return (
     <div className="flex items-center gap-2">
-      <span className="text-sm text-stone-500">Are you sure?</span>
+      <span className="text-sm text-burgundy-400">Are you sure?</span>
       <Button
         variant="danger"
         size="sm"

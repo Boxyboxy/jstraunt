@@ -1,12 +1,12 @@
-# Private Dining Experience — Product Requirements Document
+# Palette — Product Requirements Document
 
-**Version 1.0 · April 2026 · Prepared for Box**
+**Version 1.1 · April 2026 · Prepared for Box**
 
 ---
 
 ## 1. Executive Summary
 
-This document defines the product requirements for a private dining booking platform designed for a kitchen takeover experience based in San Francisco. The platform connects a small culinary team (2–3 people) with guests who book individual seats at communal tasting menu events hosted at rotating venues on weekends.
+This document defines the product requirements for **Palette**, a private dining booking platform designed for a kitchen takeover experience based in Singapore. The platform connects a small culinary team (2–3 people) with guests who book individual seats at communal tasting menu events hosted at rotating venues on weekends.
 
 The MVP delivers a public-facing website for guests to discover, browse, and book upcoming dining events, paired with an admin dashboard for the chef team to manage events, menus, venue details, pricing, reviews, and guest communications. Bookings are confirmed instantly when seats are available, and notifications are sent via email. Guests may cancel up to 48 hours before the event.
 
@@ -278,10 +278,46 @@ Pricing is set per event by the admin:
 
 ---
 
-## 10. Open Questions
+## 10. Branding
+
+### 10.1 Brand Identity
+
+| Element | Value |
+|---------|-------|
+| Name | Palette |
+| Location | Singapore |
+| Tagline | Intimate tasting menu experiences at rotating venues across Singapore |
+| Brand Feeling | Intimate, warm, subtle casual luxury |
+| Style | Modern & clean, not tacky, balance tradition with minimalism |
+
+### 10.2 Color Palette
+
+| Color | Role | Example Usage |
+|-------|------|---------------|
+| Deep Burgundy | Primary | Buttons, headings, sidebar, brand text |
+| Warm Gold | Accent / Warning | Highlight accents, "almost full" badges |
+| Sage Moss | Success | "Available" badges, positive states |
+| Warm Cream | Background | Page backgrounds, card surfaces, borders |
+
+### 10.3 Typography
+
+| Role | Font Family | Style |
+|------|-------------|-------|
+| Headings | Oswald | Bold/semibold, uppercase, wide tracking |
+| Body | Geist Sans | Regular, clean geometric sans-serif |
+
+### 10.4 Visual Motifs
+
+- Checkerboard patterns (for decorative elements)
+- Circular image crops (for dish photography, team photos)
+- Minimal borders, generous whitespace, warm tones throughout
+
+---
+
+## 11. Open Questions
 
 1. ~~**Cancellation policy:**~~ **Resolved** — Guests may cancel up to 48 hours before the event. No-shows tracked but no financial penalty pre-payment.
 2. ~~**Minimum booking size:**~~ **Resolved** — Minimum is 1 seat.
-3. ~~**Branding:**~~ **Resolved** — Deferred to the final phase of development.
+3. ~~**Branding:**~~ **Resolved** — Brand name is "Palette". Deep burgundy + warm gold + sage + cream color scheme. Oswald headings, Geist Sans body. See Section 10.
 4. ~~**SMS provider:**~~ **Resolved** — Email-only for notifications. No SMS.
 5. **Deposit vs. full payment:** When payment is added, should guests pay in full or just a deposit?
