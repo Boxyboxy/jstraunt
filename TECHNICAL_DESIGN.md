@@ -204,7 +204,8 @@ palette/
 │   ├── migrations/
 │   │   ├── 001_initial_schema.sql
 │   │   ├── 002_rls_policies.sql
-│   │   └── 003_functions.sql
+│   │   ├── 003_functions.sql
+│   │   └── 004_cancel_booking_and_fixes.sql
 │   ├── seed.sql
 │   └── config.toml
 │
@@ -549,11 +550,11 @@ BEGIN
       p_pax, (v_event.total_seats - v_event.booked_seats);
   END IF;
 
-  -- Upsert guest
+  -- Upsert guest — preserve existing name, only fill if missing
   INSERT INTO guests (name, email, phone)
   VALUES (p_guest_name, p_guest_email, p_guest_phone)
   ON CONFLICT (email) DO UPDATE SET
-    name = EXCLUDED.name,
+    name = COALESCE(NULLIF(guests.name, ''), EXCLUDED.name),
     phone = COALESCE(EXCLUDED.phone, guests.phone)
   RETURNING id INTO v_guest_id;
 
@@ -1037,7 +1038,7 @@ A monthly calendar grid showing event dots. Clicking a date navigates to the eve
 
 ### 9.3 Menu Builder (Admin)
 
-Drag-and-drop course list using `@dnd-kit/core`. Each course is an inline-editable card with fields for course type, dish title, description, dietary tags, and optional wine pairing. Courses auto-save on blur.
+Collapsible course list with move-up/move-down reordering. Each course is an inline-editable card with fields for course type, dish title, description, dietary tags, and optional wine pairing.
 
 ### 9.4 Admin Dashboard Home
 
@@ -1186,8 +1187,6 @@ Priority for MVP: focus on integration tests for the booking function (race cond
     "resend": "^4.0",
     "zod": "^3.23",
     "react-day-picker": "^9.0",
-    "@dnd-kit/core": "^6.1",
-    "@dnd-kit/sortable": "^8.0",
     "date-fns": "^3.6",
     "lucide-react": "^0.400"
   },

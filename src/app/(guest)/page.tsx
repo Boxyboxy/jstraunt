@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
+import { formatCurrency } from '@/lib/utils'
 import type { Database } from '@/types/database'
 
 type Event = Database['public']['Tables']['events']['Row']
@@ -10,19 +11,28 @@ type Venue = Database['public']['Tables']['venues']['Row']
 export default async function HomePage() {
   const supabase = await createClient()
 
-  // Fetch next upcoming event
-  const { data: upcomingEvents } = await supabase
-    .from('events')
-    .select()
-    .eq('status', 'published' as Event['status'])
-    .gte('event_date', new Date().toISOString().split('T')[0])
-    .order('event_date', { ascending: true })
-    .limit(1)
-    .returns<Event[]>()
+  // Fetch upcoming event and reviews in parallel
+  const [{ data: upcomingEvents }, { data: reviews }] = await Promise.all([
+    supabase
+      .from('events')
+      .select()
+      .eq('status', 'published' as Event['status'])
+      .gte('event_date', new Date().toISOString().split('T')[0])
+      .order('event_date', { ascending: true })
+      .limit(1)
+      .returns<Event[]>(),
+    supabase
+      .from('reviews')
+      .select()
+      .eq('is_featured', true)
+      .eq('is_visible', true)
+      .limit(3)
+      .returns<Review[]>(),
+  ])
 
   const nextEvent = upcomingEvents?.[0] ?? null
 
-  // Fetch venue name if we have an event
+  // Fetch venue name if we have an event (depends on event result)
   let venueName: string | null = null
   if (nextEvent?.venue_id) {
     const { data: venue } = await supabase
@@ -33,15 +43,6 @@ export default async function HomePage() {
       .single()
     venueName = venue?.name ?? null
   }
-
-  // Fetch featured reviews
-  const { data: reviews } = await supabase
-    .from('reviews')
-    .select()
-    .eq('is_featured', true)
-    .eq('is_visible', true)
-    .limit(3)
-    .returns<Review[]>()
 
   return (
     <div>
@@ -63,7 +64,7 @@ export default async function HomePage() {
                 <p className="text-xs uppercase tracking-wide text-burgundy-300 mb-1 sm:mb-2">Next Event</p>
                 <h2 className="text-lg sm:text-xl font-medium">{nextEvent.title}</h2>
                 <p className="text-burgundy-300 text-sm mt-1">
-                  {new Date(nextEvent.event_date + 'T00:00:00').toLocaleDateString('en-US', {
+                  {new Date(nextEvent.event_date + 'T00:00:00').toLocaleDateString('en-SG', {
                     weekday: 'long',
                     month: 'long',
                     day: 'numeric',
@@ -73,7 +74,7 @@ export default async function HomePage() {
                 </p>
                 <p className="text-sm text-burgundy-300 mt-3 sm:mt-4">
                   {nextEvent.total_seats - nextEvent.booked_seats} of {nextEvent.total_seats} seats remaining
-                  &middot; ${nextEvent.price_per_seat}/person
+                  &middot; {formatCurrency(nextEvent.price_per_seat)}/person
                 </p>
                 <Link
                   href={`/events/${nextEvent.slug}`}

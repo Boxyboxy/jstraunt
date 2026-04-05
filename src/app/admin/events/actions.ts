@@ -1,6 +1,6 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
+import { requireAuth } from '@/lib/auth'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { eventSchema } from '@/lib/validators'
 import { revalidatePath } from 'next/cache'
@@ -20,11 +20,7 @@ const courseSchema = z.object({
   wine_note: z.string().optional(),
 })
 
-async function requireAuth() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) throw new Error('Unauthorized')
-}
+const eventStatusSchema = z.enum(['draft', 'published', 'sold_out', 'completed', 'cancelled'])
 
 function parseEventFormData(formData: FormData) {
   return {
@@ -44,12 +40,16 @@ function parseEventFormData(formData: FormData) {
 
 function parseCoursesFromFormData(formData: FormData) {
   const coursesJson = formData.get('courses') as string
-  if (!coursesJson) return []
+  if (!coursesJson) return { courses: [], error: null }
   try {
     const raw = JSON.parse(coursesJson)
-    return z.array(courseSchema).parse(raw)
-  } catch {
-    return []
+    const courses = z.array(courseSchema).parse(raw)
+    return { courses, error: null }
+  } catch (e) {
+    const message = e instanceof z.ZodError
+      ? e.issues.map((issue: z.ZodIssue) => issue.message).join(', ')
+      : 'Invalid menu data'
+    return { courses: [], error: message }
   }
 }
 
@@ -63,6 +63,11 @@ export async function createEvent(formData: FormData) {
     return { error: parsed.error.flatten().fieldErrors }
   }
 
+  const { courses, error: coursesError } = parseCoursesFromFormData(formData)
+  if (coursesError) {
+    return { error: { _form: [coursesError] } }
+  }
+
   const { data: event, error } = await db
     .from('events')
     .insert(parsed.data)
@@ -73,15 +78,19 @@ export async function createEvent(formData: FormData) {
     return { error: { _form: [error.message] } }
   }
 
-  // Insert courses
-  const courses = parseCoursesFromFormData(formData)
+  // Insert courses — roll back event if this fails
   if (courses.length > 0) {
     const coursesWithEventId = courses.map((c) => ({
       ...c,
       event_id: event.id,
       id: undefined,
     }))
-    await db.from('courses').insert(coursesWithEventId)
+    const { error: coursesInsertError } = await db.from('courses').insert(coursesWithEventId)
+    if (coursesInsertError) {
+      // Clean up the orphaned event
+      await db.from('events').delete().eq('id', event.id)
+      return { error: { _form: [`Event created but menu failed to save: ${coursesInsertError.message}`] } }
+    }
   }
 
   revalidatePath('/admin/events')
@@ -99,21 +108,33 @@ export async function updateEvent(id: string, formData: FormData) {
     return { error: parsed.error.flatten().fieldErrors }
   }
 
+  const { courses, error: coursesError } = parseCoursesFromFormData(formData)
+  if (coursesError) {
+    return { error: { _form: [coursesError] } }
+  }
+
   const { error } = await db.from('events').update(parsed.data).eq('id', id)
   if (error) {
     return { error: { _form: [error.message] } }
   }
 
   // Replace courses: delete existing, insert new
-  const courses = parseCoursesFromFormData(formData)
-  await db.from('courses').delete().eq('event_id', id)
+  // If insert fails, the old courses are already gone — surface the error clearly
+  const { error: deleteError } = await db.from('courses').delete().eq('event_id', id)
+  if (deleteError) {
+    return { error: { _form: [`Failed to update menu: ${deleteError.message}`] } }
+  }
+
   if (courses.length > 0) {
     const coursesWithEventId = courses.map((c) => ({
       ...c,
       event_id: id,
       id: undefined,
     }))
-    await db.from('courses').insert(coursesWithEventId)
+    const { error: coursesInsertError } = await db.from('courses').insert(coursesWithEventId)
+    if (coursesInsertError) {
+      return { error: { _form: [`Event updated but menu failed to save: ${coursesInsertError.message}`] } }
+    }
   }
 
   revalidatePath('/admin/events')
@@ -124,11 +145,16 @@ export async function updateEvent(id: string, formData: FormData) {
 
 export async function updateEventStatus(id: string, status: string) {
   await requireAuth()
-  const db = createAdminClient()
 
+  const parsed = eventStatusSchema.safeParse(status)
+  if (!parsed.success) {
+    return { error: `Invalid status: ${status}` }
+  }
+
+  const db = createAdminClient()
   const { error } = await db
     .from('events')
-    .update({ status: status as 'draft' | 'published' | 'sold_out' | 'completed' | 'cancelled' })
+    .update({ status: parsed.data })
     .eq('id', id)
 
   if (error) {

@@ -1,6 +1,6 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
+import { requireAuth } from '@/lib/auth'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
@@ -12,12 +12,6 @@ const pastDishSchema = z.object({
   event_id: z.string().uuid().optional(),
   photo_url: z.string().min(1),
 })
-
-async function requireAuth() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) throw new Error('Unauthorized')
-}
 
 export async function createPastDish(formData: FormData) {
   await requireAuth()
@@ -55,7 +49,10 @@ export async function createPastDish(formData: FormData) {
 export async function deletePastDish(id: string) {
   await requireAuth()
   const db = createAdminClient()
-  await db.from('past_dishes').delete().eq('id', id)
+  const { error } = await db.from('past_dishes').delete().eq('id', id)
+  if (error) {
+    return { error: error.message }
+  }
   revalidatePath('/admin/dishes')
   revalidatePath('/gallery')
 }

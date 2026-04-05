@@ -1,15 +1,9 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
+import { requireAuth } from '@/lib/auth'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { reviewSchema } from '@/lib/validators'
 import { revalidatePath } from 'next/cache'
-
-async function requireAuth() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) throw new Error('Unauthorized')
-}
 
 export async function createReview(formData: FormData) {
   await requireAuth()
@@ -70,7 +64,10 @@ export async function updateReview(id: string, formData: FormData) {
 export async function toggleFeatured(id: string, isFeatured: boolean) {
   await requireAuth()
   const db = createAdminClient()
-  await db.from('reviews').update({ is_featured: isFeatured }).eq('id', id)
+  const { error } = await db.from('reviews').update({ is_featured: isFeatured }).eq('id', id)
+  if (error) {
+    return { error: error.message }
+  }
   revalidatePath('/admin/reviews')
   revalidatePath('/')
 }
@@ -78,7 +75,10 @@ export async function toggleFeatured(id: string, isFeatured: boolean) {
 export async function toggleVisible(id: string, isVisible: boolean) {
   await requireAuth()
   const db = createAdminClient()
-  await db.from('reviews').update({ is_visible: isVisible }).eq('id', id)
+  const { error } = await db.from('reviews').update({ is_visible: isVisible }).eq('id', id)
+  if (error) {
+    return { error: error.message }
+  }
   revalidatePath('/admin/reviews')
   revalidatePath('/')
 }
@@ -86,7 +86,10 @@ export async function toggleVisible(id: string, isVisible: boolean) {
 export async function deleteReview(id: string) {
   await requireAuth()
   const db = createAdminClient()
-  await db.from('reviews').delete().eq('id', id)
+  const { error } = await db.from('reviews').delete().eq('id', id)
+  if (error) {
+    return { error: error.message }
+  }
   revalidatePath('/admin/reviews')
   revalidatePath('/')
 }

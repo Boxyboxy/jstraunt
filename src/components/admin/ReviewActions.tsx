@@ -7,9 +7,9 @@ interface ReviewActionsProps {
   id: string
   isFeatured: boolean
   isVisible: boolean
-  onToggleFeatured: (id: string, value: boolean) => Promise<void>
-  onToggleVisible: (id: string, value: boolean) => Promise<void>
-  onDelete: (id: string) => Promise<void>
+  onToggleFeatured: (id: string, value: boolean) => Promise<{ error: string } | void>
+  onToggleVisible: (id: string, value: boolean) => Promise<{ error: string } | void>
+  onDelete: (id: string) => Promise<{ error: string } | void>
 }
 
 export default function ReviewActions({
@@ -26,7 +26,7 @@ export default function ReviewActions({
     <div className="flex items-center gap-1">
       <button
         disabled={isPending}
-        onClick={() => startTransition(() => onToggleFeatured(id, !isFeatured))}
+        onClick={() => startTransition(async () => { await onToggleFeatured(id, !isFeatured) })}
         className={`p-1.5 rounded-md transition-colors ${
           isFeatured
             ? 'text-amber-500 hover:bg-amber-50'
@@ -38,7 +38,7 @@ export default function ReviewActions({
       </button>
       <button
         disabled={isPending}
-        onClick={() => startTransition(() => onToggleVisible(id, !isVisible))}
+        onClick={() => startTransition(async () => { await onToggleVisible(id, !isVisible) })}
         className={`p-1.5 rounded-md transition-colors ${
           isVisible
             ? 'text-burgundy-600 hover:bg-cream-200'
@@ -52,7 +52,7 @@ export default function ReviewActions({
         disabled={isPending}
         onClick={() => {
           if (confirm('Delete this review?')) {
-            startTransition(() => onDelete(id))
+            startTransition(async () => { await onDelete(id) })
           }
         }}
         className="p-1.5 rounded-md text-burgundy-300 hover:bg-red-50 hover:text-red-500 transition-colors"

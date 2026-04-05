@@ -1,16 +1,10 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
+import { requireAuth } from '@/lib/auth'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { venueSchema } from '@/lib/validators'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
-
-async function requireAuth() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) throw new Error('Unauthorized')
-}
 
 export async function createVenue(formData: FormData) {
   await requireAuth()
@@ -70,6 +64,18 @@ export async function updateVenue(id: string, formData: FormData) {
 export async function deleteVenue(id: string) {
   await requireAuth()
   const db = createAdminClient()
+
+  // Check if any events reference this venue
+  const { count } = await db
+    .from('events')
+    .select('id', { count: 'exact', head: true })
+    .eq('venue_id', id)
+
+  if (count && count > 0) {
+    return {
+      error: `Cannot delete: ${count} event${count > 1 ? 's' : ''} still linked to this venue. Reassign or delete them first.`,
+    }
+  }
 
   const { error } = await db.from('venues').delete().eq('id', id)
   if (error) {
