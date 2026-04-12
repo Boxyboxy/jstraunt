@@ -211,16 +211,10 @@ export default async function HomePage() {
       {/* Past Dishes Preview */}
       {previewDishes && previewDishes.length > 0 && (
         <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20">
-          <div className="flex items-baseline justify-between mb-10 sm:mb-12">
+          <div className="mb-10 sm:mb-12">
             <h2 className="text-lg sm:text-xl font-heading font-semibold uppercase tracking-wide text-burgundy-900">
               From our kitchen
             </h2>
-            <Link
-              href="/gallery"
-              className="text-sm text-burgundy-500 hover:text-burgundy-800 transition-colors"
-            >
-              View all dishes →
-            </Link>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
             {previewDishes.map((dish) => (
@@ -242,6 +236,14 @@ export default async function HomePage() {
                 </p>
               </Link>
             ))}
+          </div>
+          <div className="flex justify-end mt-6">
+            <Link
+              href="/gallery"
+              className="text-sm text-burgundy-500 hover:text-burgundy-800 transition-colors"
+            >
+              View all dishes →
+            </Link>
           </div>
         </section>
       )}
