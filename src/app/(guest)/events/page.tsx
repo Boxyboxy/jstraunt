@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { MapPin, Wine } from 'lucide-react'
+import { MapPin, Clock, Wine } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { formatCurrency, formatTime, getSeatsStatus } from '@/lib/utils'
 import { format, parseISO } from 'date-fns'
@@ -68,13 +68,15 @@ export default async function EventsPage() {
                 >
                   <p className="text-xs text-gold-400 font-medium uppercase tracking-widest mb-2">
                     {format(parseISO(event.event_date), 'EEE, d MMM yyyy')}
-                    {' · '}
-                    {formatTime(event.event_time)}
                   </p>
                   <h2 className="font-heading font-semibold uppercase tracking-wide text-burgundy-900 text-xl group-hover:text-burgundy-700 transition-colors mb-1">
                     {event.title}
                   </h2>
                   <div className="flex items-center gap-3 text-sm text-burgundy-400 mb-3">
+                    <span className="flex items-center gap-1">
+                      <Clock className="h-3.5 w-3.5" />
+                      {formatTime(event.event_time)}
+                    </span>
                     {venueMap[event.venue_id ?? ''] && (
                       <span className="flex items-center gap-1">
                         <MapPin className="h-3.5 w-3.5" />
