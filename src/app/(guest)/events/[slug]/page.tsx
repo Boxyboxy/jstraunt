@@ -22,7 +22,7 @@ export default async function EventDetailPage({ params }: PageProps) {
   const { slug } = await params
   const supabase = await createClient()
 
-  const { data: event } = await supabase
+  const { data: event, error } = await supabase
     .from('events')
     .select(`
       *,
@@ -33,6 +33,8 @@ export default async function EventDetailPage({ params }: PageProps) {
     .in('status', ['published', 'sold_out', 'completed'])
     .single()
 
+  // PGRST116 = no rows returned; anything else is a real error
+  if (error && error.code !== 'PGRST116') throw error
   if (!event) notFound()
 
   // Sort courses by sequence — Supabase doesn't guarantee order on joined tables
@@ -130,9 +132,9 @@ export default async function EventDetailPage({ params }: PageProps) {
                         {course.description}
                       </p>
                     )}
-                    {course.dietary_tags.length > 0 && (
+                    {(course.dietary_tags ?? []).length > 0 && (
                       <div className="flex flex-wrap gap-1.5 mb-2">
-                        {course.dietary_tags.map((tag) => (
+                        {(course.dietary_tags ?? []).map((tag) => (
                           <span
                             key={tag}
                             className="text-xs bg-cream-200 text-burgundy-700 px-1.5 py-0.5 rounded"
