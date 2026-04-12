@@ -4,10 +4,10 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { UtensilsCrossed, Menu, X } from 'lucide-react'
 
-const navLinks = [
+// Links are hidden until their pages are built to avoid 404s for first-time visitors
+const navLinks: { href: string; label: string }[] = [
   { href: '/events', label: 'Events' },
   { href: '/gallery', label: 'Gallery' },
-  { href: '/about', label: 'About' },
 ]
 
 export default function MobileHeader() {
@@ -36,19 +36,21 @@ export default function MobileHeader() {
           ))}
         </div>
 
-        {/* Mobile hamburger */}
-        <button
-          type="button"
-          className="sm:hidden p-2 -mr-2 text-burgundy-700"
-          onClick={() => setOpen(!open)}
-          aria-label={open ? 'Close menu' : 'Open menu'}
-        >
-          {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-        </button>
+        {/* Mobile hamburger — only shown when there are nav links */}
+        {navLinks.length > 0 && (
+          <button
+            type="button"
+            className="sm:hidden p-2 -mr-2 text-burgundy-700"
+            onClick={() => setOpen(!open)}
+            aria-label={open ? 'Close menu' : 'Open menu'}
+          >
+            {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
+        )}
       </nav>
 
       {/* Mobile menu dropdown */}
-      {open && (
+      {open && navLinks.length > 0 && (
         <div className="sm:hidden border-t border-cream-300 bg-cream-50">
           <div className="px-4 py-3 space-y-1">
             {navLinks.map((link) => (
