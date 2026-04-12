@@ -8,6 +8,7 @@ import type { Database } from '@/types/database'
 type Event = Database['public']['Tables']['events']['Row']
 type Review = Database['public']['Tables']['reviews']['Row']
 type Venue = Database['public']['Tables']['venues']['Row']
+type DishPreview = Pick<Database['public']['Tables']['past_dishes']['Row'], 'id' | 'dish_name' | 'photo_url'>
 
 export default async function HomePage() {
   const supabase = await createClient()
@@ -31,8 +32,10 @@ export default async function HomePage() {
     supabase
       .from('past_dishes')
       .select('id, dish_name, photo_url')
+      .not('photo_url', 'is', null)
       .order('created_at', { ascending: false })
-      .limit(3),
+      .limit(3)
+      .returns<DishPreview[]>(),
   ])
 
   const nextEvent = upcomingEvents?.[0] ?? null
@@ -242,7 +245,7 @@ export default async function HomePage() {
               href="/gallery"
               className="text-sm text-burgundy-500 hover:text-burgundy-800 transition-colors"
             >
-              View all dishes →
+              View all dishes &rarr;
             </Link>
           </div>
         </section>
