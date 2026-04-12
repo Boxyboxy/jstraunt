@@ -7,6 +7,7 @@ export default async function GalleryPage() {
   const { data: dishes } = await supabase
     .from('past_dishes')
     .select('id, dish_name, course_type, photo_url, event:events(title, slug)')
+    // Exclude dishes without photos — avoids broken Image tiles
     .not('photo_url', 'is', null)
     .order('created_at', { ascending: false })
 
@@ -20,7 +21,7 @@ export default async function GalleryPage() {
   // Count unique events for the subtitle
   const eventCount = new Set(
     allDishes
-      .map(d => (d.event as { title: string; slug: string } | null)?.title)
+      .map(d => (d.event as { title: string; slug: string } | null)?.slug)
       .filter(Boolean)
   ).size
 
