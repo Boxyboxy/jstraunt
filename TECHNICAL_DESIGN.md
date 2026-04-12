@@ -11,9 +11,9 @@ A single Next.js application serving both the public guest site and the admin da
 
 ```
 ┌─────────────────────────────────────────────────────┐
-│                    Vercel (Hosting)                  │
+│                    Vercel (Hosting)                 │
 │  ┌───────────────────────────────────────────────┐  │
-│  │              Next.js App Router                │  │
+│  │              Next.js App Router               │  │
 │  │                                               │  │
 │  │  /              → Guest public site (SSR)     │  │
 │  │  /events/[id]   → Event detail (SSR + ISR)    │  │
@@ -21,8 +21,8 @@ A single Next.js application serving both the public guest site and the admin da
 │  │  /admin/*       → Admin dashboard (CSR)       │  │
 │  │  /api/*         → API routes (serverless)     │  │
 │  └───────────────┬───────────────────────────────┘  │
-│                  │                                   │
-└──────────────────┼───────────────────────────────────┘
+│                  │                                  │
+└──────────────────┼──────────────────────────────────┘
                    │
         ┌──────────▼──────────┐
         │      Supabase       │
