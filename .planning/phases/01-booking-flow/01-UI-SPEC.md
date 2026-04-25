@@ -52,11 +52,11 @@ Exceptions: Touch targets for stepper dots and increment/decrement buttons must 
 | Role | Size | Weight | Line Height | Font | Tailwind Class Pattern |
 |------|------|--------|-------------|------|----------------------|
 | Body | 14px | 400 (regular) | 1.5 | Geist Sans | `text-sm` |
-| Label | 14px | 500 (medium) | 1.4 | Geist Sans | `text-sm font-medium` |
-| Heading | 20px | 600 (semibold) | 1.2 | Oswald | `font-heading text-xl font-semibold uppercase tracking-wide` |
+| Label | 14px | 400 (regular) | 1.4 | Geist Sans | `text-sm text-burgundy-600` |
+| Heading | 20px | 700 (bold) | 1.2 | Oswald | `font-heading text-xl font-bold uppercase tracking-wide` |
 | Display | 28px | 700 (bold) | 1.2 | Oswald | `font-heading text-2xl sm:text-3xl font-bold uppercase tracking-wide` |
 
-Display is used only for the event title in the booking page header. Heading is used for step titles. Body and Label cover all form content.
+Two weights only: 400 (regular) for all body and label text, 700 (bold) for all heading and display text. Labels are visually distinguished from body text through color (`text-burgundy-600`) rather than weight. Display is used only for the event title in the booking page header. Heading is used for step titles. Body and Label cover all form content.
 
 ---
 
