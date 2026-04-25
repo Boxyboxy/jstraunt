@@ -5,6 +5,7 @@ status: draft
 shadcn_initialized: false
 preset: none
 created: 2026-04-25
+revised: 2026-04-25
 ---
 
 # Phase 3 — UI Design Contract
@@ -66,13 +67,14 @@ Exceptions:
 | Role | Desktop Size | Mobile Size | Weight | Line Height |
 |------|-------------|-------------|--------|-------------|
 | Body | 14px (`text-sm`) | 14px (`text-sm`) | 400 (regular) | 1.5 |
-| Label | 12px (`text-xs`) | 12px (`text-xs`) | 500 (medium) | 1.4 |
+| Label | 12px (`text-xs`) | 12px (`text-xs`) | 400 (regular) | 1.4 |
 | Heading | 20px (`text-xl`) | 18px (`text-lg`) | 600 (semibold) | 1.2 |
-| Display | 36px (`text-4xl`) | 24px (`text-2xl`) | 700 (bold) | 1.1 |
+| Display | 36px (`text-4xl`) | 24px (`text-2xl`) | 600 (semibold) | 1.1 |
+
+Two weights only: 400 (regular) for all body and label text, 600 (semibold) for all heading and display text. Labels are visually distinguished from body text through size (12px vs 14px) and color rather than weight. Display is distinguished from Heading through size alone. This matches the 2-weight constraint established in the Phase 1 UI-SPEC.
 
 Notes:
 - Display sizes already use responsive classes in the codebase (e.g., `text-3xl sm:text-4xl md:text-5xl`). This phase normalizes them to the scale above.
-- The existing codebase uses weight 600 (semibold) for headings and weight 700 (bold) for display. Both are kept to match the established pattern.
 
 ---
 
@@ -88,6 +90,15 @@ No color changes in this phase. The existing brand palette applies identically a
 | Destructive | `--color-burgundy-500` (#8b3f52) at reduced opacity | Cancel/delete confirmations (admin only) |
 
 Accent reserved for: sticky CTA button, booking "Reserve Your Seat" link, admin sidebar active state, mobile hamburger menu icon.
+
+---
+
+## Focal Points
+
+| Screen | Focal Element | Rationale |
+|--------|--------------|-----------|
+| Homepage | Hero CTA buttons ("Reserve Your Seat" / "View Upcoming Dinners") | First interaction point; full-width stacked on mobile draws the eye immediately below the hero heading |
+| Event Detail | Sticky bottom CTA bar ("Reserve Your Seat" button) | Persistent anchor at viewport bottom ensures booking action is always reachable regardless of scroll position |
 
 ---
 
@@ -173,6 +184,8 @@ Already implemented with responsive classes. **Audit for:** adequate spacing on 
 
 **Required change:** Admin sidebar must become collapsible at tablet viewport. Add a toggle button (hamburger icon) that expands/collapses the sidebar. When collapsed, show only icons (no text labels). Sidebar state persisted in `localStorage`.
 
+**Accessibility requirement:** When the sidebar is collapsed and nav items show icon-only, every nav item must include an `aria-label` with the full link text (e.g., `aria-label="Bookings"`). Additionally, each icon-only nav item must show a tooltip on hover (desktop) or long-press (tablet) displaying the link text, using `title` attribute or a lightweight tooltip component.
+
 ### Admin Tables
 
 | Element | Current | Tablet (768px) Target |
@@ -191,7 +204,7 @@ Already implemented with responsive classes. **Audit for:** adequate spacing on 
 | Primary CTA | "Reserve Your Seat" (existing, no change) |
 | Empty state heading (events) | "No upcoming dinners right now." (existing) |
 | Empty state body (events) | "We host intimate evenings regularly -- check back soon, or browse what we've cooked before." (existing) |
-| Error state (booking form) | "Something went wrong. Please try again, or contact us if the problem continues." |
+| Error state (booking form) | "We couldn't complete your booking. Please try again, or contact us if the problem continues." |
 | Destructive confirmation (admin cancel) | Cancel Booking: "This will release the reserved seats. Are you sure?" |
 
 No new copywriting is introduced in this phase. The existing copy is viewport-agnostic and requires no mobile-specific variants.
@@ -225,7 +238,7 @@ No new copywriting is introduced in this phase. The existing copy is viewport-ag
 - Toggle button: 44x44px, positioned at top of sidebar.
 - Icon: `PanelLeftClose` (lucide) when expanded, `PanelLeftOpen` when collapsed.
 - Transition: `width` transition over 200ms, `ease-in-out`.
-- Collapsed state: `w-16`, show only icons centered. Nav item text hidden via `overflow-hidden` and `w-0`.
+- Collapsed state: `w-16`, show only icons centered. Nav item text hidden via `overflow-hidden` and `w-0`. Each icon-only nav item must have `aria-label` matching the full link text.
 - Expanded state: `w-64` (existing).
 - Default state on mount: expanded on desktop (>= 1024px), collapsed on tablet (768-1023px). Read from `localStorage` if available.
 
@@ -256,6 +269,8 @@ This section maps requirements to concrete implementation tasks for the planner.
 
 ### MOBL-02: Admin dashboard tablet (768px)
 - [ ] Convert admin sidebar to collapsible with icon-only collapsed state
+- [ ] Add `aria-label` to all icon-only nav items in collapsed state
+- [ ] Add tooltip on hover/long-press for icon-only nav items
 - [ ] Add sidebar toggle button with localStorage persistence
 - [ ] Reduce admin main content padding on tablet (`p-4 md:p-8`)
 - [ ] Wrap admin tables in `overflow-x-auto` containers
