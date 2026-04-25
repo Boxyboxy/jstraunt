@@ -52,11 +52,11 @@ Exceptions: none. Admin pages do not require touch-target overrides (desktop-fir
 | Role | Size | Weight | Line Height | Font | Tailwind Class Pattern |
 |------|------|--------|-------------|------|----------------------|
 | Body | 14px | 400 (regular) | 1.5 | Geist Sans | `text-sm` |
-| Label | 12px | 500 (medium) | 1.4 | Geist Sans | `text-xs font-medium text-burgundy-400 uppercase tracking-wide` |
+| Label | 12px | 600 (semibold) | 1.4 | Geist Sans | `text-xs font-semibold text-burgundy-400 uppercase tracking-wide` |
 | Heading | 24px | 600 (semibold) | 1.2 | Geist Sans | `text-2xl font-semibold text-burgundy-900` |
-| Subheading | 14px | 500 (medium) | 1.4 | Geist Sans | `text-sm font-medium text-burgundy-900` |
+| Subheading | 14px | 600 (semibold) | 1.4 | Geist Sans | `text-sm font-semibold text-burgundy-900` |
 
-Two weights: 400 (regular) for body text and 500/600 (medium/semibold) for headings and labels. Admin pages use Geist Sans for all text (including headings) -- Oswald is reserved for guest-facing branded headings only, consistent with existing admin pages.
+Two weights: 400 (regular) for body text and 600 (semibold) for headings, labels, and subheadings. Admin pages use Geist Sans for all text (including headings) -- Oswald is reserved for guest-facing branded headings only, consistent with existing admin pages.
 
 ---
 
@@ -108,9 +108,11 @@ No changes to existing header layout.
 
 Each booking renders as a white card with `rounded-lg border border-cream-300 p-6`.
 
+**Focal point:** The guest name and status badge row is the primary scan line. Guest name is left-aligned at 600 weight, status badge is immediately adjacent, and the cancel action is right-aligned. This lets the admin scan name-then-status in a single left-to-right pass.
+
 | Element | Component | Notes |
 |---------|-----------|-------|
-| Guest name | `<p>` font-medium | `guest.name`, fallback "Unknown" |
+| Guest name | `<p>` font-semibold | `guest.name`, fallback "Unknown" |
 | Contact info | `<p>` text-sm | `guest.email` + optional `guest.phone` separated by middot |
 | Status badge | `Badge` | Variant mapped: confirmed=success, cancelled=danger, pending=warning |
 | Party size | `<span>` text-sm | "{pax} guest(s)" |
@@ -125,7 +127,7 @@ Each booking renders as a white card with `rounded-lg border border-cream-300 p-
 Adapts the existing `DeleteButton` two-state inline confirm pattern.
 
 **State 1 -- Idle:**
-- `Button variant="ghost" size="sm"` containing `X` icon (16px, `text-red-500`) and text "Cancel"
+- `Button variant="ghost" size="sm"` containing `X` icon (16px, `text-red-500`) and text "Cancel Booking"
 - Clicking transitions to State 2
 
 **State 2 -- Confirming:**
@@ -158,7 +160,7 @@ When no bookings exist for the event:
 | Page heading | "Bookings" |
 | Page subtext | "{event.title} -- {booked_seats}/{total_seats} seats booked" |
 | Back link | "Back to event" |
-| Cancel button (idle) | "Cancel" |
+| Cancel button (idle) | "Cancel Booking" |
 | Cancel confirmation prompt | "Cancel this booking?" |
 | Cancel confirm button | "Yes, cancel" |
 | Cancel dismiss button | "No" |
@@ -167,7 +169,7 @@ When no bookings exist for the event:
 | Empty state body | "No bookings yet for this event." |
 | Error: booking not found | "This booking could not be found." |
 | Error: already cancelled | "This booking has already been cancelled." |
-| Error: generic cancel failure | "Something went wrong. Please try again." |
+| Error: generic cancel failure | "Could not cancel this booking. Please try again." |
 | Status badge: confirmed | "confirmed" |
 | Status badge: cancelled | "cancelled" |
 | Status badge: pending | "pending" |
@@ -200,7 +202,7 @@ No modal confirmation is used. The inline reveal pattern is preferred for single
 
 ### Cancel Booking Flow (ADMIN-02)
 
-1. Admin clicks "Cancel" ghost button on a confirmed booking card
+1. Admin clicks "Cancel Booking" ghost button on a confirmed booking card
 2. Button row transforms to inline confirmation: "Cancel this booking?" + "Yes, cancel" (danger) + "No" (ghost)
 3. Admin clicks "Yes, cancel":
    - Button shows "Cancelling..." and becomes disabled
@@ -248,6 +250,10 @@ No additional data fetching is needed. The `cancel_booking` RPC updates both `bo
       |-- Card details section: guest dietary details (below divider)
 ```
 
+### Focal Point
+
+The bookings list page focal point is the **booking cards list**. The page heading and event context serve as orientation; the card list is the primary content area the admin scans on arrival. Within each card, the guest name (left, semibold) and status badge (inline, color-coded) form the scan line.
+
 ### Dimensions
 
 | Element | Value |
@@ -259,7 +265,7 @@ No additional data fetching is needed. The `cancel_booking` RPC updates both `bo
 | Card list gap | `space-y-4` (16px) |
 | Guest details divider | `border-t border-cream-200 pt-3 mt-3` |
 | Guest detail row gap | `space-y-2` (8px) |
-| Badge padding | `px-2 py-0.5` (8px horizontal, 2px vertical) |
+| Badge padding | `px-2 py-1` (8px horizontal, 4px vertical) |
 | Badge border radius | `rounded-full` |
 | Guest name column width | `w-32 flex-shrink-0` (128px) |
 | Header margin bottom | `mb-8` (32px) |
