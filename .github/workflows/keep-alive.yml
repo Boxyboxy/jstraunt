@@ -11,8 +11,6 @@ jobs:
     steps:
       - name: Ping Supabase REST API
         run: |
-          curl -sf -o /dev/null \
+          curl -v -w "\nHTTP Status: %{http_code}\n" \
             -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
-            "${{ secrets.SUPABASE_URL }}/rest/v1/" \
-            && echo "Ping successful" \
-            || (echo "Ping failed" && exit 1)
+            "${{ secrets.SUPABASE_URL }}/rest/v1/"
