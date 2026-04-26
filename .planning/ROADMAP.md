@@ -29,7 +29,12 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. Guest sees live seat availability and cannot proceed past step 1 when seats are full
   4. Submit button is disabled during submission and cannot be clicked twice
   5. Refreshing the browser mid-form does not lose form state (non-PII fields restored from sessionStorage)
-**Plans**: TBD
+**Plans**: 4 plans
+Plans:
+- [ ] 01-01-PLAN.md — Server action (submitBooking) and ISR page with sold-out guard
+- [ ] 01-02-PLAN.md — StepIndicator, StepParty, StepDietary components
+- [ ] 01-03-PLAN.md — StepContact, StepReview, BookingSuccess components
+- [ ] 01-04-PLAN.md — BookingForm root component (useReducer, sessionStorage, handleConfirm) + activate page.tsx
 **UI hint**: yes
 
 ### Phase 2: Admin Bookings
@@ -69,7 +74,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Booking Flow | 0/? | Not started | - |
+| 1. Booking Flow | 0/4 | Not started | - |
 | 2. Admin Bookings | 0/? | Not started | - |
 | 3. Mobile Responsive | 0/? | Not started | - |
 | 4. SEO | 0/? | Not started | - |
