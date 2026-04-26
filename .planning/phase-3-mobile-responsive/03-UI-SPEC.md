@@ -5,7 +5,7 @@ status: draft
 shadcn_initialized: false
 preset: none
 created: 2026-04-25
-revised: 2026-04-25
+revised: 2026-04-26
 ---
 
 # Phase 3 — UI Design Contract
@@ -37,7 +37,9 @@ This phase is a responsive retrofit, not a feature build. It modifies existing p
 | Tablet | 768px | Admin dashboard |
 | Desktop | 1024px+ | Existing (no regression) |
 
-**Tailwind breakpoints used:** `sm` (640px), `md` (768px), `lg` (1024px) — matches existing codebase patterns.
+**Tailwind breakpoints used:** `sm` (640px), `md` (768px), `lg` (1024px) -- matches existing codebase patterns.
+
+**Phase dependency:** The booking flow pages (`/book/[id]`) are built in Phase 1. This phase applies responsive fixes to whatever Phase 1 produces. If Phase 1 is incomplete, MOBL-03 tasks are deferred until the pages exist.
 
 ---
 
@@ -57,8 +59,8 @@ Declared values (must be multiples of 4):
 
 Exceptions:
 - Touch targets: minimum 44px height on all interactive elements at mobile viewport (iOS HIG).
-- Mobile page horizontal padding: 16px (`px-4`), matching existing pattern.
-- Sticky CTA bar bottom padding: 16px (`py-4`) on mobile to clear iOS Safari home indicator.
+- Mobile page horizontal padding: 16px (`px-4`), matching existing pattern across all guest pages.
+- Sticky CTA bar bottom padding: must include `env(safe-area-inset-bottom)` on iOS Safari to clear the home indicator.
 
 ---
 
@@ -71,10 +73,9 @@ Exceptions:
 | Heading | 20px (`text-xl`) | 18px (`text-lg`) | 600 (semibold) | 1.2 |
 | Display | 36px (`text-4xl`) | 24px (`text-2xl`) | 600 (semibold) | 1.1 |
 
-Two weights only: 400 (regular) for all body and label text, 600 (semibold) for all heading and display text. Labels are visually distinguished from body text through size (12px vs 14px) and color rather than weight. Display is distinguished from Heading through size alone. This matches the 2-weight constraint established in the Phase 1 UI-SPEC.
+Two weights only: 400 (regular) for all body and label text, 600 (semibold) for all heading and display text. Labels are visually distinguished from body text through size (12px vs 14px) and color rather than weight. Display is distinguished from Heading through size alone.
 
-Notes:
-- Display sizes already use responsive classes in the codebase (e.g., `text-3xl sm:text-4xl md:text-5xl`). This phase normalizes them to the scale above.
+**iOS input exception:** All `<input>` and `<textarea>` elements on mobile must render at 16px (`text-base`) minimum to prevent iOS Safari auto-zoom on focus. The `Input` component (`src/components/ui/Input.tsx`) currently uses `text-sm` (14px) and must be updated to `text-sm md:text-sm text-base` (16px on mobile, 14px on md+) or simply `text-base` everywhere. The simpler approach of `text-base` everywhere is preferred to avoid class complexity.
 
 ---
 
@@ -97,103 +98,152 @@ Accent reserved for: sticky CTA button, booking "Reserve Your Seat" link, admin 
 
 | Screen | Focal Element | Rationale |
 |--------|--------------|-----------|
-| Homepage | Hero CTA buttons ("Reserve Your Seat" / "View Upcoming Dinners") | First interaction point; full-width stacked on mobile draws the eye immediately below the hero heading |
+| Homepage | Hero CTA button ("View this event" / "View upcoming events") | First interaction point; full-width on mobile draws the eye immediately below the hero content |
 | Event Detail | Sticky bottom CTA bar ("Reserve Your Seat" button) | Persistent anchor at viewport bottom ensures booking action is always reachable regardless of scroll position |
+| Booking Flow | Sticky bottom "Next Step" / "Confirm Booking" CTA | Full-width 48px button at bottom of viewport keeps progress action always visible during form input |
 
 ---
 
 ## Responsive Behavior Contracts
 
-### Guest Header (MobileHeader.tsx)
+### Guest Header (`src/components/guest/MobileHeader.tsx`)
 
 | Viewport | Behavior |
 |----------|----------|
 | < 640px | Hamburger menu, h-14 nav bar, full-width dropdown |
 | >= 640px | Inline horizontal nav links, h-16 nav bar |
 
-Already implemented. **No changes required** — confirm no regression.
+**Current state:** Already implemented and functional.
 
-### Guest Homepage (page.tsx)
+**Required fix:** The hamburger button currently uses `p-2` padding on a 20px icon, yielding approximately 36px tap area. Add `min-h-[44px] min-w-[44px]` and center the icon with `flex items-center justify-center` to meet the 44px touch target. The mobile dropdown links at `py-2` with `text-base` yield approximately 40px height -- add `min-h-[44px]` to each link for compliance.
+
+### Guest Homepage (`src/app/(guest)/page.tsx`)
 
 | Element | Mobile (< 640px) | Tablet/Desktop (>= 640px) |
 |---------|-------------------|---------------------------|
-| Hero section | `py-16`, `text-2xl` heading | `py-24` / `py-32`, `text-4xl` / `text-5xl` |
-| CTA buttons | Full width (`w-full`), stacked vertically | Inline (`w-auto`), horizontal |
-| Info grid | Single column | 3 columns at `sm` |
-| Gallery grid | 2 columns | 3 columns at `md` |
+| Hero section | `py-16`, `text-3xl` heading | `py-24` / `py-32`, `text-4xl` / `text-5xl` |
+| Hero CTA button | Full width (`w-full`), `justify-center` | Inline (`w-auto`), `justify-start` |
+| How It Works grid | Single column (`grid-cols-1`) | 3 columns at `sm` |
+| Reviews grid | Single column | 2 columns at `sm` |
+| Past Dishes grid | 2 columns (`grid-cols-2`) | 3 columns at `md` |
 
-Already partially implemented with responsive classes. **Audit for:** overflow on 390px viewport, CTA touch target size (minimum 44px height).
+**Current state:** Already uses responsive classes throughout. The "View this event" CTA correctly uses `w-full sm:w-auto`.
 
-### Events List Page
+**Audit items:**
+- Verify no horizontal overflow at 390px, particularly the event card metadata line with date, time, venue, and price which uses `flex-wrap` but has `gap-x-4 gap-y-1` that may push content.
+- The hero CTA button uses `py-2.5` yielding approximately 40px height. Add `min-h-[44px]` for touch target compliance.
+
+### Events List Page (`src/app/(guest)/events/page.tsx`)
 
 | Element | Mobile (< 640px) | Desktop |
 |---------|-------------------|---------|
 | Container | `px-4`, `py-12` | `px-6` / `px-8`, `py-16` |
-| Event card | Full width, stacked metadata | Same |
+| Event cards | Full width, metadata wraps via `flex-wrap` | Same |
+| Badge row | `flex-wrap gap-2` | Same |
 
-Already uses `max-w-2xl` centered layout. **Audit for:** long event titles wrapping correctly, badge row not overflowing.
+**Current state:** Already uses `max-w-2xl` centered layout with responsive padding. Event cards are `<Link>` blocks with `py-7` providing adequate vertical rhythm.
 
-### Event Detail Page
+**Audit items:**
+- Long event titles: the heading uses `text-xl` with `font-heading` (Oswald) which is condensed. Verify titles over 40 characters do not overflow at 390px minus 32px padding = 358px content width.
+- Badge row with multiple badges (seats, wine pairing) at `flex-wrap gap-2` should be fine but verify no single badge exceeds content width.
+- Each event card link has `py-7` yielding well over 44px tap area. No touch target fix needed here.
+
+### Event Detail Page (`src/app/(guest)/events/[slug]/page.tsx`)
 
 | Element | Mobile (< 640px) | Desktop |
 |---------|-------------------|---------|
 | Hero | `py-14`, `text-3xl` heading | `py-20`, `text-5xl` |
-| Menu courses | Full width, `gap-4` between roman numeral and content | Same |
-| Sticky CTA bar | Fixed bottom, flex-wrap if needed, 44px minimum button height | Same layout |
+| Info badges row | `flex flex-wrap gap-2` | Same |
+| Menu courses | Full width, `flex gap-4` between roman numeral and content | Same |
+| Venue strip | `flex gap-3`, icon + text block | Same |
+| Sticky CTA bar | Fixed bottom, full width | Same layout |
 
-Existing implementation is mostly responsive. **Critical fix required:** sticky CTA bar must account for iOS Safari bottom bar (safe area inset). Use `pb-safe` or `env(safe-area-inset-bottom)`.
+**Current state:** Mostly responsive. The `max-w-3xl` container with `px-4` gives 358px content width on 390px viewport.
 
-### Booking Flow (Phase 1 output — pages not yet built)
+**Critical fixes required:**
+1. **Sticky CTA bar safe area:** The bar at `fixed bottom-0` lacks iOS safe area inset. Add `pb-[env(safe-area-inset-bottom)]` to the bar's inner container, or use a wrapper with `padding-bottom: env(safe-area-inset-bottom)`. The bar currently uses `py-3` which is insufficient on devices with home indicators.
+2. **Sticky CTA touch target:** The "Reserve Your Seat" link uses `py-2.5` yielding approximately 40px height. Add `min-h-[44px]` for compliance.
+3. **Body bottom padding:** The body section uses `pb-28` to clear the sticky bar. Verify this provides enough clearance on iOS Safari where the bottom bar height varies.
+
+### Booking Flow (Phase 1 output -- pages built in `src/app/(guest)/book/`)
 
 | Element | Mobile (< 640px) | Desktop |
 |---------|-------------------|---------|
 | Step indicator | Horizontal dots or compact numbered steps (no text labels) | Full text step labels |
-| Form inputs | Full width, `text-base` (16px) to prevent iOS zoom | Same width, `text-sm` allowed |
-| "Next Step" CTA | Full width, sticky bottom, 48px height, 16px font | Inline, standard button size |
-| Number stepper (pax/wine) | Touch-friendly +/- buttons at 44px minimum | Same |
+| Form inputs | Full width, `text-base` (16px) to prevent iOS zoom | Full width, `text-base` (using same size for consistency) |
+| "Next Step" CTA | Full width, sticky bottom, 48px height, 16px font | Inline or full width, standard button size |
+| Number stepper (pax/wine) | Touch-friendly +/- buttons at 44x44px minimum | Same |
 | Review summary | Single column, stacked sections | Same |
 
 **iOS Safari keyboard handling:**
-- All `<input>` elements on mobile must use `font-size: 16px` minimum to prevent auto-zoom on focus.
-- Use `inputMode="numeric"` for pax/wine counts, `inputMode="email"` for email, `inputMode="tel"` for phone.
+- All `<input>` elements must use `font-size: 16px` minimum to prevent auto-zoom on focus. The `Input` component at `src/components/ui/Input.tsx` currently uses `text-sm` (14px) and MUST be changed.
+- Use `inputMode="numeric"` for pax/wine counts, `inputMode="email"` for email, `inputMode="tel"` for phone, `inputMode="text"` for name/allergies.
 - "Next Step" CTA must not be obscured by the keyboard. Use scroll-into-view on input focus or position the CTA above the keyboard using viewport height calculation.
+- Add `overscroll-behavior: none` to the form container to prevent iOS bounce scroll during step transitions.
 
-### Gallery Page
+**Note:** These pages do not exist yet. Phase 1 must build them first. If Phase 1 follows the Phase 1 UI-SPEC, many of these mobile patterns should already be in place. This phase audits and fixes any gaps.
+
+### Gallery Page (`src/app/(guest)/gallery/page.tsx` + `src/components/guest/GalleryGrid.tsx`)
 
 | Element | Mobile (< 640px) | Desktop |
 |---------|-------------------|---------|
+| Filter chips | `flex-wrap gap-2`, horizontally scrollable if many | Same |
 | Grid | 2 columns, `gap-1` | 3 columns at `md` |
 
-Already responsive via `grid-cols-2 md:grid-cols-3`. **No changes required.**
+**Current state:** Grid is already responsive via `grid-cols-2 md:grid-cols-3 gap-1`.
 
-### Guest Layout Footer
+**Required fix:** Gallery filter chip buttons use `text-xs px-3 py-1.5` yielding approximately 30px height, well below 44px touch target. Add `min-h-[44px]` to each filter chip button for mobile compliance. The `px-3` horizontal padding is adequate for horizontal tap area since the text provides additional width.
+
+### Guest Layout Footer (`src/app/(guest)/layout.tsx`)
 
 | Element | Mobile (< 640px) | Desktop |
 |---------|-------------------|---------|
-| Footer columns | Single column, stacked | 3 columns at `md` |
+| Footer columns | Single column (`grid-cols-1`) | 3 columns at `md` |
 | Nav links row | Horizontal `flex gap-4` | Vertical `block space-y-2` |
+| Padding | `px-4 py-8` | `px-6`/`px-8 py-12` |
 
-Already implemented with responsive classes. **Audit for:** adequate spacing on 390px.
+**Current state:** Already responsive with `grid-cols-1 md:grid-cols-3` and `sm:` breakpoints for padding.
 
-### Admin Layout
+**Required fix:** The Navigate section footer links are inline `<Link>` elements in a `flex gap-4` on mobile. Each link is `text-sm` text with no explicit height or padding, making tap targets approximately 20px. Add `min-h-[44px] inline-flex items-center` to each footer nav link on mobile, or restructure to `block` with `py-2` on mobile so stacked links each get adequate tap area.
+
+### Admin Layout (`src/app/admin/layout.tsx` + `src/components/admin/Sidebar.tsx`)
 
 | Element | Current | Tablet (768px) Target |
 |---------|---------|----------------------|
-| Sidebar | Fixed `w-64`, always visible | Collapsible: icon-only `w-16` by default, expand on hover/tap or via toggle button |
+| Sidebar | Fixed `w-64`, always visible, `bg-burgundy-900` | Collapsible: icon-only `w-16` by default, expand on tap via toggle button |
 | Main content | `flex-1 p-8` | `flex-1 p-4 md:p-8` |
 
-**Required change:** Admin sidebar must become collapsible at tablet viewport. Add a toggle button (hamburger icon) that expands/collapses the sidebar. When collapsed, show only icons (no text labels). Sidebar state persisted in `localStorage`.
+**Required changes:**
 
-**Accessibility requirement:** When the sidebar is collapsed and nav items show icon-only, every nav item must include an `aria-label` with the full link text (e.g., `aria-label="Bookings"`). Additionally, each icon-only nav item must show a tooltip on hover (desktop) or long-press (tablet) displaying the link text, using `title` attribute or a lightweight tooltip component.
+1. **Sidebar collapse mechanism:** Convert `Sidebar.tsx` to support collapsed state. Add a `collapsed` boolean state managed by the component with `localStorage` persistence under key `palette-sidebar-collapsed`.
+2. **Default state on mount:** Collapsed on viewports below 1024px, expanded on 1024px+. Check `localStorage` first; if no stored value, use viewport width to determine default.
+3. **Toggle button:** 44x44px, positioned at the top of the sidebar (below the "Palette" header). Use `PanelLeftClose` (lucide) icon when expanded, `PanelLeftOpen` when collapsed.
+4. **Collapsed layout:** `w-16`, nav icons centered horizontally (`justify-center`), text hidden via `overflow-hidden` and `opacity-0 w-0` with `transition-all duration-200 ease-in-out`. The "Palette" header text and "Admin Dashboard" subtitle are hidden; only the logo area remains.
+5. **Expanded layout:** `w-64` (existing), full text visible.
+6. **Width transition:** `transition-[width] duration-200 ease-in-out` on the `<aside>` element.
+7. **Accessibility:** Every nav item in collapsed state must have `aria-label` matching the link text (e.g., `aria-label="Events"`). Add `title` attribute to each nav `<Link>` matching the link text for native tooltip on hover.
+8. **Sign out button:** In collapsed state, show only the `LogOut` icon centered, with `aria-label="Sign out"`.
+9. **Admin layout update:** Change main content from `p-8` to `p-4 md:p-8`.
 
-### Admin Tables
+The current sidebar nav items use `py-2` yielding approximately 36px height. In collapsed state with icon-only display, add `min-h-[44px]` to each nav item for touch target compliance on tablet.
 
-| Element | Current | Tablet (768px) Target |
-|---------|---------|----------------------|
-| Data tables | Full `<table>` with horizontal scroll | Horizontally scrollable container (`overflow-x-auto`) wrapping the table |
-| Table cells | Fixed padding `px-6 py-4` | Reduced padding `px-3 py-3 md:px-6 md:py-4` |
+### Admin Pages with Tables
 
-**Required change:** Wrap all admin `<table>` elements in a `div` with `overflow-x-auto` and `-webkit-overflow-scrolling: touch`. Do not convert tables to card layouts — horizontal scroll is acceptable for admin at 768px.
+**Pages using `<table>` elements (confirmed by codebase scan):**
+- `src/app/admin/events/page.tsx` -- events list table with columns: Event, Date, Seats, Price, Status
+
+**Pages using card/flex layouts (NOT tables):**
+- `src/app/admin/events/[id]/bookings/page.tsx` -- booking cards with flex layout
+- Other admin pages use forms or card-based layouts
+
+**Required changes for table pages:**
+1. Wrap the `<table>` in a `<div>` with `overflow-x-auto` and `-webkit-overflow-scrolling: touch`.
+2. Reduce table cell padding from `px-6 py-4` to `px-3 py-3 md:px-6 md:py-4` on all `<td>` elements.
+3. Reduce table header padding from `px-6 py-3` to `px-3 py-3 md:px-6` on all `<th>` elements.
+
+**Required changes for card-layout admin pages (bookings):**
+1. The bookings page card header uses `flex items-center justify-between` which may stack poorly on narrow tablets. At `md` breakpoint and below, the header should stack: guest info on top, badges and counts below, using `flex-col md:flex-row`.
+2. Guest detail rows use `w-32 flex-shrink-0` for name column which is fine at 768px but should be verified.
 
 ---
 
@@ -204,6 +254,8 @@ Already implemented with responsive classes. **Audit for:** adequate spacing on 
 | Primary CTA | "Reserve Your Seat" (existing, no change) |
 | Empty state heading (events) | "No upcoming dinners right now." (existing) |
 | Empty state body (events) | "We host intimate evenings regularly -- check back soon, or browse what we've cooked before." (existing) |
+| Empty state (gallery) | "No dishes yet -- check back after our first dinner." (existing) |
+| Empty state (admin bookings) | "No bookings yet for this event." (existing) |
 | Error state (booking form) | "We couldn't complete your booking. Please try again, or contact us if the problem continues." |
 | Destructive confirmation (admin cancel) | Cancel Booking: "This will release the reserved seats. Are you sure?" |
 
@@ -214,33 +266,51 @@ No new copywriting is introduced in this phase. The existing copy is viewport-ag
 ## Interaction Contracts
 
 ### Touch Targets
-- All buttons, links, and interactive elements must have a minimum tap area of 44x44px on mobile viewports.
-- For inline text links, use adequate padding or `min-h-[44px]` with flex centering.
-- Number stepper +/- buttons: 44x44px minimum.
+
+All buttons, links, and interactive elements must have a minimum tap area of 44x44px on mobile viewports (< 640px). The following elements have been identified as needing fixes:
+
+| Component | Current Size | Fix |
+|-----------|-------------|-----|
+| `MobileHeader` hamburger button | ~36px (p-2 on 20px icon) | Add `min-h-[44px] min-w-[44px] flex items-center justify-center` |
+| `MobileHeader` dropdown links | ~40px (py-2 text-base) | Add `min-h-[44px]` |
+| `GalleryGrid` filter chips | ~30px (text-xs py-1.5) | Add `min-h-[44px]` |
+| Event detail sticky CTA link | ~40px (py-2.5) | Add `min-h-[44px]` |
+| Homepage hero CTA button | ~40px (py-2.5) | Add `min-h-[44px]` |
+| Guest footer nav links | ~20px (no padding) | Add `min-h-[44px] inline-flex items-center` or restructure to block with padding |
+| Admin sidebar nav items (collapsed) | ~36px (py-2) | Add `min-h-[44px]` |
+| Number stepper +/- buttons (booking) | TBD (Phase 1 build) | Must be 44x44px minimum |
 
 ### Scroll Behavior
-- No horizontal scrolling on guest pages at 390px viewport. Any overflow must be audited and fixed.
-- Admin tables are the sole exception: horizontal scroll is permitted within a scroll container.
+
+- No horizontal scrolling on any guest page at 390px viewport. Any overflow must be audited and fixed.
+- Admin tables are the sole exception: horizontal scroll is permitted within a scroll container with `overflow-x-auto`.
 - Sticky CTA bar on event detail page must remain visible during vertical scroll.
+- On iOS Safari, the bottom bar (URL bar/home indicator) reduces effective viewport height. The sticky CTA bar's content must not be clipped by this.
 
 ### iOS Safari Specific
-- Sticky bottom CTA must use `padding-bottom: env(safe-area-inset-bottom)` on the bar container to avoid home indicator overlap.
-- Input fields must be `font-size: 16px` minimum to prevent auto-zoom.
-- `-webkit-overflow-scrolling: touch` on any overflow containers.
-- Form step transitions should not trigger bounce scroll. Use `overscroll-behavior: none` on the form container.
+
+1. **Safe area insets:** Sticky bottom CTA must use `padding-bottom: env(safe-area-inset-bottom)` on the bar container. Add `viewport-fit=cover` to the `<meta name="viewport">` tag in the root layout if not already present.
+2. **Input zoom prevention:** All `<input>` and `<textarea>` elements must use `font-size: 16px` minimum. The `Input` component (`src/components/ui/Input.tsx`) currently uses `text-sm` (14px) and must be updated.
+3. **Momentum scrolling:** Add `-webkit-overflow-scrolling: touch` on any `overflow-x-auto` or `overflow-y-auto` containers (admin table wrappers).
+4. **Bounce scroll prevention:** Add `overscroll-behavior: none` to the booking form container to prevent iOS bounce scroll during step transitions.
+5. **100vh issue:** Do not use `h-screen` or `100vh` for full-height layouts on iOS Safari, as it includes the URL bar height. Use `min-h-dvh` (dynamic viewport height) if a full-height layout is needed, or use `min-h-screen` with flex-grow (which is the existing pattern and is fine).
 
 ### Keyboard Handling (Booking Form)
-- `inputMode` attributes: `numeric` for counts, `email` for email, `tel` for phone, `text` for name/allergies.
-- On input focus, the focused field must scroll into view above the keyboard.
+
+- `inputMode` attributes: `numeric` for pax/wine counts, `email` for email, `tel` for phone, `text` for name/allergies.
+- On input focus, the focused field must scroll into view above the keyboard. Use `element.scrollIntoView({ behavior: 'smooth', block: 'center' })` on focus.
 - "Next Step" button must remain accessible (not hidden behind keyboard). Prefer scrolling the button into view after the last field rather than fixed positioning, which conflicts with iOS keyboard behavior.
+- The `Select` component (`src/components/ui/Select.tsx`) uses native `<select>` which triggers the iOS picker. No special handling needed for selects.
 
 ### Admin Sidebar Toggle
-- Toggle button: 44x44px, positioned at top of sidebar.
+
+- Toggle button: 44x44px, positioned at top of sidebar below the header.
 - Icon: `PanelLeftClose` (lucide) when expanded, `PanelLeftOpen` when collapsed.
 - Transition: `width` transition over 200ms, `ease-in-out`.
-- Collapsed state: `w-16`, show only icons centered. Nav item text hidden via `overflow-hidden` and `w-0`. Each icon-only nav item must have `aria-label` matching the full link text.
+- Collapsed state: `w-16`, show only icons centered. Nav item text hidden via `overflow-hidden` and `opacity-0 w-0` with transition. Each icon-only nav item must have `aria-label` matching the full link text and a `title` attribute for native tooltip.
 - Expanded state: `w-64` (existing).
-- Default state on mount: expanded on desktop (>= 1024px), collapsed on tablet (768-1023px). Read from `localStorage` if available.
+- Default state on mount: expanded on desktop (>= 1024px), collapsed on tablet (768-1023px). Read from `localStorage` key `palette-sidebar-collapsed` if available.
+- Sign out button: icon-only with `aria-label="Sign out"` when collapsed.
 
 ---
 
@@ -259,30 +329,46 @@ No component registry is used. All UI atoms are custom (`src/components/ui/`).
 This section maps requirements to concrete implementation tasks for the planner.
 
 ### MOBL-01: Guest site responsive (390px)
-- [ ] Audit homepage for overflow at 390px — fix any horizontal scroll
-- [ ] Audit events list page for overflow at 390px
-- [ ] Audit event detail page for overflow at 390px
-- [ ] Add `env(safe-area-inset-bottom)` to sticky CTA bar
-- [ ] Audit gallery page at 390px (likely already fine)
-- [ ] Audit guest footer at 390px
-- [ ] Verify all touch targets meet 44px minimum
+
+- [ ] Add `viewport-fit=cover` to viewport meta tag in root layout (if not present)
+- [ ] Update `Input` component (`src/components/ui/Input.tsx`) from `text-sm` to `text-base` to prevent iOS zoom
+- [ ] Fix `MobileHeader` hamburger button touch target: add `min-h-[44px] min-w-[44px]`
+- [ ] Fix `MobileHeader` dropdown link touch targets: add `min-h-[44px]`
+- [ ] Fix homepage hero CTA button touch target: add `min-h-[44px]`
+- [ ] Audit homepage at 390px for horizontal overflow (especially event card metadata line)
+- [ ] Audit events list page at 390px for long title wrapping and badge overflow
+- [ ] Fix event detail sticky CTA bar: add `pb-[env(safe-area-inset-bottom)]`
+- [ ] Fix event detail sticky CTA link touch target: add `min-h-[44px]`
+- [ ] Verify event detail body `pb-28` provides enough clearance for sticky bar on iOS
+- [ ] Fix gallery filter chip touch targets: add `min-h-[44px]`
+- [ ] Fix guest footer nav link touch targets: add padding or min-height for 44px compliance
+- [ ] Final audit: confirm no horizontal scrolling on any guest page at 390px
 
 ### MOBL-02: Admin dashboard tablet (768px)
-- [ ] Convert admin sidebar to collapsible with icon-only collapsed state
-- [ ] Add `aria-label` to all icon-only nav items in collapsed state
-- [ ] Add tooltip on hover/long-press for icon-only nav items
-- [ ] Add sidebar toggle button with localStorage persistence
-- [ ] Reduce admin main content padding on tablet (`p-4 md:p-8`)
-- [ ] Wrap admin tables in `overflow-x-auto` containers
-- [ ] Reduce table cell padding on tablet viewport
 
-### MOBL-03: Booking form mobile
-- [ ] Ensure all form inputs use `text-base` (16px) on mobile to prevent iOS zoom
-- [ ] Add correct `inputMode` attributes to all inputs
-- [ ] Make step indicator compact on mobile (dots/numbers only, no text labels)
-- [ ] Make "Next Step" CTA full-width and 48px height on mobile
-- [ ] Test scroll-into-view on input focus
+- [ ] Convert admin sidebar to collapsible with icon-only collapsed state
+- [ ] Add toggle button (PanelLeftClose/PanelLeftOpen) with 44px tap area
+- [ ] Add `aria-label` and `title` to all nav items for collapsed state accessibility
+- [ ] Implement localStorage persistence for sidebar state
+- [ ] Set default collapsed state based on viewport width (collapsed < 1024px)
+- [ ] Add width transition animation (200ms ease-in-out)
+- [ ] Handle sign out button in collapsed state (icon-only with aria-label)
+- [ ] Update admin layout main content padding: `p-4 md:p-8`
+- [ ] Wrap events table in `overflow-x-auto` container with `-webkit-overflow-scrolling: touch`
+- [ ] Reduce table cell/header padding on mobile: `px-3 py-3 md:px-6 md:py-4`
+- [ ] Fix bookings page card header to stack on narrow viewports: `flex-col md:flex-row`
+- [ ] Add `min-h-[44px]` to sidebar nav items for collapsed icon-only state
+
+### MOBL-03: Booking form mobile (depends on Phase 1)
+
+- [ ] Verify all form inputs use `text-base` (16px) on mobile (covered by Input component fix in MOBL-01)
+- [ ] Verify correct `inputMode` attributes on all inputs
+- [ ] Verify step indicator is compact on mobile (dots/numbers only, no text labels)
+- [ ] Verify "Next Step" CTA is full-width and 48px height on mobile
+- [ ] Add scroll-into-view behavior on input focus
 - [ ] Add `overscroll-behavior: none` to form container
+- [ ] Test keyboard interaction: CTA remains accessible when keyboard is open
+- [ ] Verify number stepper +/- buttons are 44x44px minimum
 
 ---
 
