@@ -5,6 +5,7 @@ status: draft
 shadcn_initialized: false
 preset: none
 created: 2026-04-25
+updated: 2026-04-26
 ---
 
 # Phase 2 — UI Design Contract
@@ -23,9 +24,9 @@ created: 2026-04-25
 | Icon library | lucide-react |
 | Font | Oswald (headings), Geist Sans (body) |
 
-Existing atoms reused in this phase: `Button` (primary, ghost, danger variants), `Badge` (default, success, warning, danger, info variants), `Modal` (dialog-based with title + close button).
+Existing atoms reused in this phase: `Button` (primary, ghost, danger variants), `Badge` (default, success, warning, danger, info variants).
 
-New atoms needed: none. The bookings list page and cancel flow are assembled from existing atoms. The `DeleteButton` pattern (inline confirm) is adapted into a `CancelBookingButton` component with the same two-state reveal pattern.
+New atoms needed: none. The bookings list page and cancel flow are assembled from existing atoms. A `CancelBookingButton` client component adapts the existing `DeleteButton` two-state reveal pattern from `src/components/admin/DeleteButton.tsx`.
 
 ---
 
@@ -53,10 +54,10 @@ Exceptions: none. Admin pages do not require touch-target overrides (desktop-fir
 |------|------|--------|-------------|------|----------------------|
 | Body | 14px | 400 (regular) | 1.5 | Geist Sans | `text-sm` |
 | Label | 12px | 600 (semibold) | 1.4 | Geist Sans | `text-xs font-semibold text-burgundy-400 uppercase tracking-wide` |
-| Heading | 24px | 600 (semibold) | 1.2 | Geist Sans | `text-2xl font-semibold text-burgundy-900` |
+| Heading | 24px | 600 (semibold) | 1.2 | Oswald | `text-2xl font-semibold text-burgundy-900` |
 | Subheading | 14px | 600 (semibold) | 1.4 | Geist Sans | `text-sm font-semibold text-burgundy-900` |
 
-Two weights: 400 (regular) for body text and 600 (semibold) for headings, labels, and subheadings. Admin pages use Geist Sans for all text (including headings) -- Oswald is reserved for guest-facing branded headings only, consistent with existing admin pages.
+Two weights: 400 (regular) for body text and 600 (semibold) for headings, labels, and subheadings. Headings use Oswald via the global CSS rule (`h1-h6 { font-family: var(--font-heading) }`). Body text and labels use Geist Sans.
 
 ---
 
@@ -66,10 +67,10 @@ Two weights: 400 (regular) for body text and 600 (semibold) for headings, labels
 |------|-------|-------|
 | Dominant (60%) | `cream-100` | Page background (from admin layout `bg-cream-100`) |
 | Secondary (30%) | `white` / `cream-300` | Booking cards (`bg-white border-cream-300`), section dividers (`border-cream-200`) |
-| Accent (10%) | `burgundy-700` | Back link hover text, "View Bookings" link, primary action text |
-| Destructive | `red-600` | Cancel button background (danger variant), cancelled badge background |
+| Accent (10%) | `burgundy-700` | Guest detail name column text, primary interactive text links |
+| Destructive | `red-600` | Cancel confirm button background (danger variant), cancelled badge background |
 
-Accent reserved for: navigation back-link hover state, "View Bookings" link on event detail page, and any primary interactive text links. Never applied to booking card backgrounds or badge fills.
+Accent reserved for: guest detail name text (`text-burgundy-700`), back-link default text color state, and any primary interactive text links. Never applied to booking card backgrounds or badge fills.
 
 ### State Colors
 
@@ -92,53 +93,57 @@ Accent reserved for: navigation back-link hover state, "View Bookings" link on e
 
 ## Component Inventory
 
-### Bookings Page Header (existing, enhanced)
+### Bookings Page Header (existing, unchanged)
 
 Located at top of `/admin/events/[id]/bookings/page.tsx`.
 
 | Element | Component | Notes |
 |---------|-----------|-------|
-| Back link | `<Link>` with `ArrowLeft` icon | "Back to event", links to `/admin/events/[id]` |
+| Back link | `<Link>` with `ArrowLeft` icon (14px, `h-3.5 w-3.5`) | "Back to event", links to `/admin/events/[id]`, `text-burgundy-400 hover:text-burgundy-900` |
 | Page heading | `<h1>` | "Bookings" |
 | Event context | `<p>` | "{event.title} -- {booked_seats}/{total_seats} seats booked" |
 
-No changes to existing header layout.
+Layout: `mb-8` on header container. Back link has `mb-2`. Event context has `mt-1`.
 
 ### Booking Card (existing, enhanced with cancel)
 
 Each booking renders as a white card with `rounded-lg border border-cream-300 p-6`.
 
-**Focal point:** The guest name and status badge row is the primary scan line. Guest name is left-aligned at 600 weight, status badge is immediately adjacent, and the cancel action is right-aligned. This lets the admin scan name-then-status in a single left-to-right pass.
+**Focal point:** The guest name and status badge row is the primary scan line. Guest name is left-aligned at 500 weight (`font-medium`), status badge is immediately adjacent in the right-aligned group, and the cancel action is right-aligned. This lets the admin scan name-then-status in a single left-to-right pass.
 
 | Element | Component | Notes |
 |---------|-----------|-------|
-| Guest name | `<p>` font-semibold | `guest.name`, fallback "Unknown" |
-| Contact info | `<p>` text-sm | `guest.email` + optional `guest.phone` separated by middot |
+| Guest name | `<p>` `font-medium text-burgundy-900` | `guest.name`, fallback "Unknown" |
+| Contact info | `<p>` `text-sm text-burgundy-400` | `guest.email` + optional `guest.phone` separated by middot |
 | Status badge | `Badge` | Variant mapped: confirmed=success, cancelled=danger, pending=warning |
-| Party size | `<span>` text-sm | "{pax} guest(s)" |
-| Wine pairings | `<span>` text-sm | "{count} wine pairing(s)", only shown when count > 0 |
+| Party size | `<span>` `text-sm font-medium text-burgundy-900` | "{pax} guest(s)" |
+| Wine pairings | `<span>` `text-sm text-burgundy-400` | "{count} wine pairing(s)", only shown when count > 0 |
 | Cancel button | `CancelBookingButton` | Only shown when `booking.status !== 'cancelled'`. Positioned in card header row, right-aligned after badges. |
-| Guest details section | Expandable section below divider | Guest name, allergy badges (severity-colored), dietary badges (info), special requests (italic) |
+| Guest details section | Below `border-t border-cream-200 pt-3 mt-3` divider | Guest name (`font-medium text-burgundy-700 w-32 flex-shrink-0`), allergy badges (severity-colored), dietary badges (info), special requests (italic `text-burgundy-400`) |
+
+**Card header layout:** `flex items-center justify-between mb-4`. Left side: guest name + contact stacked. Right side: `flex items-center gap-3` containing status badge, pax, wine, cancel button.
 
 **Cancelled booking visual treatment:** When `booking.status === 'cancelled'`, the entire card gets `opacity-60` to visually de-emphasize it. The cancel button is hidden. The status badge reads "cancelled" in danger variant.
 
 ### CancelBookingButton (new client component)
 
-Adapts the existing `DeleteButton` two-state inline confirm pattern.
+Adapts the existing `DeleteButton` two-state inline confirm pattern from `src/components/admin/DeleteButton.tsx`.
 
 **State 1 -- Idle:**
-- `Button variant="ghost" size="sm"` containing `X` icon (16px, `text-red-500`) and text "Cancel Booking"
+- `Button variant="ghost" size="sm"` containing `Trash2` icon (16px, `h-4 w-4 text-red-500`) and text "Cancel"
 - Clicking transitions to State 2
 
 **State 2 -- Confirming:**
-- Inline row: confirmation text + Confirm button + Dismiss button
+- Inline row (`flex items-center gap-2`): confirmation text + Confirm button + Dismiss button
 - Confirmation text: `<span>` "Cancel this booking?" in `text-sm text-burgundy-400`
 - Confirm button: `Button variant="danger" size="sm"`, label "Yes, cancel"
 - Dismiss button: `Button variant="ghost" size="sm"`, label "No"
 - Uses `useTransition` for pending state
 - Confirm button during pending: label "Cancelling...", `disabled`
 
-**On confirm:** Calls server action that invokes `cancel_booking(booking_id, true)` RPC via admin client. Server action calls `revalidatePath` to refresh the bookings list.
+**On confirm:** Calls server action that invokes `cancel_booking(booking_id, true)` RPC via `createAdminClient()`. Server action calls `revalidatePath` to refresh the bookings list.
+
+**On error:** Returns `{ error: string }` from server action. Component displays error inline where the confirmation row was, auto-clears after 4 seconds, then returns to idle state.
 
 ### Empty State (existing, unchanged)
 
@@ -160,7 +165,7 @@ When no bookings exist for the event:
 | Page heading | "Bookings" |
 | Page subtext | "{event.title} -- {booked_seats}/{total_seats} seats booked" |
 | Back link | "Back to event" |
-| Cancel button (idle) | "Cancel Booking" |
+| Cancel button (idle) | "Cancel" |
 | Cancel confirmation prompt | "Cancel this booking?" |
 | Cancel confirm button | "Yes, cancel" |
 | Cancel dismiss button | "No" |
@@ -177,7 +182,7 @@ When no bookings exist for the event:
 | No restrictions text | "No restrictions" |
 | Wine pairing text | "{N} wine pairing(s)" |
 | Party size text | "{N} guest(s)" |
-| Special requests display | Italic, wrapped in smart quotes |
+| Special requests display | Italic, wrapped in smart quotes (`&ldquo;` / `&rdquo;`) |
 
 ### Destructive Action Contract
 
@@ -202,8 +207,8 @@ No modal confirmation is used. The inline reveal pattern is preferred for single
 
 ### Cancel Booking Flow (ADMIN-02)
 
-1. Admin clicks "Cancel Booking" ghost button on a confirmed booking card
-2. Button row transforms to inline confirmation: "Cancel this booking?" + "Yes, cancel" (danger) + "No" (ghost)
+1. Admin clicks "Cancel" ghost button on a confirmed booking card
+2. Button transforms to inline confirmation row: "Cancel this booking?" + "Yes, cancel" (danger) + "No" (ghost)
 3. Admin clicks "Yes, cancel":
    - Button shows "Cancelling..." and becomes disabled
    - Server action calls `cancel_booking(booking_id, true)` via `createAdminClient()`
@@ -218,10 +223,10 @@ No modal confirmation is used. The inline reveal pattern is preferred for single
 // Located at: src/app/admin/events/actions.ts (extend existing file)
 // Pattern matches existing admin actions:
 // 1. requireAuth()
-// 2. Validate input (booking_id is UUID)
+// 2. Validate input (booking_id is UUID via z.string().uuid())
 // 3. Call cancel_booking RPC via createAdminClient()
-// 4. revalidatePath()
-// 5. Return { error?: string } on failure
+// 4. revalidatePath('/admin/events/[id]/bookings')
+// 5. Return { error?: string } on failure (do NOT redirect — stay on bookings page)
 ```
 
 ### Data Fetching
@@ -252,7 +257,7 @@ No additional data fetching is needed. The `cancel_booking` RPC updates both `bo
 
 ### Focal Point
 
-The bookings list page focal point is the **booking cards list**. The page heading and event context serve as orientation; the card list is the primary content area the admin scans on arrival. Within each card, the guest name (left, semibold) and status badge (inline, color-coded) form the scan line.
+The bookings list page focal point is the **booking cards list**. The page heading and event context serve as orientation; the card list is the primary content area the admin scans on arrival. Within each card, the guest name (left, `font-medium`) and status badge (inline, color-coded) form the scan line.
 
 ### Dimensions
 
@@ -263,12 +268,22 @@ The bookings list page focal point is the **booking cards list**. The page headi
 | Booking card border radius | `rounded-lg` (8px) |
 | Booking card border | `border border-cream-300` |
 | Card list gap | `space-y-4` (16px) |
+| Card header margin-bottom | `mb-4` (16px) |
 | Guest details divider | `border-t border-cream-200 pt-3 mt-3` |
 | Guest detail row gap | `space-y-2` (8px) |
-| Badge padding | `px-2 py-1` (8px horizontal, 4px vertical) |
+| Badge padding | `px-2 py-0.5` (8px horizontal, 2px vertical) |
 | Badge border radius | `rounded-full` |
+| Badge font size | `text-xs` (12px) |
 | Guest name column width | `w-32 flex-shrink-0` (128px) |
-| Header margin bottom | `mb-8` (32px) |
+| Header container margin-bottom | `mb-8` (32px) |
+| Back link margin-bottom | `mb-2` (8px) |
+| Event context margin-top | `mt-1` (4px) |
+| Back link icon size | `h-3.5 w-3.5` (14px) |
+| Cancel/delete icon size | `h-4 w-4` (16px) |
+| Card header right-side gap | `gap-3` (12px) |
+| Confirm row gap | `gap-2` (8px) |
+| Badge row gap | `gap-2` (8px) |
+| Guest detail items gap | `gap-4` (16px, between name column and badges) |
 
 ### Responsive Notes
 
