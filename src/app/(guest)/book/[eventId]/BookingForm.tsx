@@ -1,6 +1,6 @@
 'use client'
 
-import { useReducer, useEffect, startTransition } from 'react'
+import { useReducer, useEffect, useTransition } from 'react'
 import { z } from 'zod'
 import type { Database } from '@/types/database'
 import StepIndicator from './StepIndicator'
@@ -217,6 +217,10 @@ export default function BookingForm({ event, seatsLeft }: BookingFormProps) {
     seatsLeft,
     buildInitialState,
   )
+  // useTransition gives an authoritative isPending boolean that's not subject to
+  // the closure-staleness problem of `state.isSubmitting` (which only updates on
+  // re-render and could let a rapid double-click slip through the guard).
+  const [isPending, startTransition] = useTransition()
 
   // Restore from sessionStorage on mount.
   // Validates the payload with Zod before dispatching, then clamps numerics to
@@ -284,7 +288,9 @@ export default function BookingForm({ event, seatsLeft }: BookingFormProps) {
   }
 
   function handleConfirm() {
-    if (state.isSubmitting) return // double-submit guard (defense in depth)
+    // Synchronous double-submit guard via useTransition's isPending — unlike
+    // state.isSubmitting (closure-captured), this reads the latest pending state.
+    if (isPending) return
     // Validate every prior step (defense in depth: server validates again).
     const errors = validateAllSteps(state)
     if (Object.keys(errors).length > 0) {
