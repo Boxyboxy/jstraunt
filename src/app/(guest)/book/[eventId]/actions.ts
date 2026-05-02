@@ -21,10 +21,27 @@ function mapRpcError(msg: string): string {
 
 export async function submitBooking(
   payload: unknown,
-): Promise<{ bookingId: string } | { error: string }> {
+): Promise<
+  | { bookingId: string }
+  | { error: string; fieldErrors?: Record<string, string> }
+> {
   const parsed = bookingSchema.safeParse(payload)
   if (!parsed.success) {
-    return { error: 'Invalid booking data' }
+    // Flatten Zod field errors so the client can highlight the offending input.
+    // Map server-side field names back to the client's UI field names where they differ.
+    const flat = parsed.error.flatten()
+    const fieldErrors: Record<string, string> = {}
+    const map: Record<string, string> = {
+      guestName: 'name',
+      guestEmail: 'email',
+      guestPhone: 'phone',
+    }
+    for (const [key, msgs] of Object.entries(flat.fieldErrors)) {
+      if (!msgs || msgs.length === 0) continue
+      const uiKey = map[key] ?? key
+      fieldErrors[uiKey] = msgs[0] as string
+    }
+    return { error: 'Please correct the highlighted fields.', fieldErrors }
   }
 
   const supabase = await createClient()

@@ -55,6 +55,41 @@ const initialState: FormState = {
   bookingId: null,
 }
 
+// --- Step validators ---
+
+function validateStep(state: FormState): Record<string, string> {
+  const errors: Record<string, string> = {}
+  if (state.step === 1) {
+    if (state.wineOptIn && state.winePairingCount < 1) {
+      errors.winePairingCount = 'Choose at least one wine pairing'
+    }
+  }
+  if (state.step === 2) {
+    state.guestDetails.forEach((g, i) => {
+      if (!g.guest_name.trim()) {
+        errors[`guestDetails.${i}.guest_name`] = 'Required'
+      }
+    })
+  }
+  if (state.step === 3) {
+    if (!state.contact.name.trim()) errors.name = 'Required'
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(state.contact.email)) {
+      errors.email = 'Valid email required'
+    }
+    if (!state.contact.phone.trim()) errors.phone = 'Required'
+  }
+  return errors
+}
+
+function validateAllSteps(state: FormState): Record<string, string> {
+  // For Confirm: validate every prior step regardless of current step.
+  return {
+    ...validateStep({ ...state, step: 1 }),
+    ...validateStep({ ...state, step: 2 }),
+    ...validateStep({ ...state, step: 3 }),
+  }
+}
+
 function bookingReducer(state: FormState, action: BookingAction): FormState {
   switch (action.type) {
     case 'SET_PAX': {
@@ -115,6 +150,12 @@ function bookingReducer(state: FormState, action: BookingAction): FormState {
         isSubmitting: false,
         errors: { ...state.errors, _form: action.error },
       }
+    case 'SET_FIELD_ERRORS':
+      return {
+        ...state,
+        isSubmitting: false,
+        errors: action.errors,
+      }
     case 'SET_SUCCESS':
       return { ...state, isSubmitting: false, bookingId: action.bookingId }
     case 'RESTORE':
@@ -174,8 +215,23 @@ export default function BookingForm({ event, seatsLeft }: BookingFormProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state])
 
+  function handleNext() {
+    const errors = validateStep(state)
+    if (Object.keys(errors).length > 0) {
+      dispatch({ type: 'SET_FIELD_ERRORS', errors })
+      return
+    }
+    dispatch({ type: 'NEXT_STEP' })
+  }
+
   function handleConfirm() {
     if (state.isSubmitting) return // double-submit guard (defense in depth)
+    // Validate every prior step (defense in depth: server validates again).
+    const errors = validateAllSteps(state)
+    if (Object.keys(errors).length > 0) {
+      dispatch({ type: 'SET_FIELD_ERRORS', errors })
+      return
+    }
     dispatch({ type: 'SUBMIT' })
     startTransition(async () => {
       const result = await submitBooking({
@@ -189,7 +245,11 @@ export default function BookingForm({ event, seatsLeft }: BookingFormProps) {
         guestDetails: state.guestDetails,
       })
       if ('error' in result) {
-        dispatch({ type: 'SET_ERROR', error: result.error })
+        if (result.fieldErrors && Object.keys(result.fieldErrors).length > 0) {
+          dispatch({ type: 'SET_FIELD_ERRORS', errors: result.fieldErrors })
+        } else {
+          dispatch({ type: 'SET_ERROR', error: result.error })
+        }
       } else {
         dispatch({ type: 'SET_SUCCESS', bookingId: result.bookingId })
       }
@@ -252,7 +312,7 @@ export default function BookingForm({ event, seatsLeft }: BookingFormProps) {
           {state.step < 4 && (
             <button
               type="button"
-              onClick={() => dispatch({ type: 'NEXT_STEP' })}
+              onClick={handleNext}
               className="ml-auto text-sm font-medium bg-burgundy-700 text-white px-6 py-2 rounded-md hover:bg-burgundy-800 transition-colors"
             >
               Next

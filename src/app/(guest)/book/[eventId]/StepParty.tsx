@@ -46,6 +46,7 @@ export type BookingAction =
   | { type: 'GO_TO_STEP'; step: 1 | 2 | 3 | 4 }
   | { type: 'SUBMIT' }
   | { type: 'SET_ERROR'; error: string }
+  | { type: 'SET_FIELD_ERRORS'; errors: Record<string, string> }
   | { type: 'SET_SUCCESS'; bookingId: string }
   | { type: 'RESTORE'; payload: Partial<FormState> }
 
