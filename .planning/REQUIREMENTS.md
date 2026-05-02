@@ -15,8 +15,8 @@ Requirements for this milestone. Each maps to roadmap phases.
 - [x] **BOOK-04**: Guest can review booking summary and confirm on step 4
 - [x] **BOOK-05**: Booking atomically reserves seats via `create_booking` RPC
 - [x] **BOOK-06**: Form shows live seat availability and prevents overbooking
-- [ ] **BOOK-07**: Submit button is disabled during submission to prevent double-submit
-- [ ] **BOOK-08**: Form progress persists to sessionStorage across page refreshes
+- [x] **BOOK-07**: Submit button is disabled during submission to prevent double-submit
+- [x] **BOOK-08**: Form progress persists to sessionStorage across page refreshes
 
 ### Admin Bookings
 
@@ -89,8 +89,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | BOOK-04 | Phase 1 | Complete |
 | BOOK-05 | Phase 1 | Complete |
 | BOOK-06 | Phase 1 | Complete |
-| BOOK-07 | Phase 1 | Pending |
-| BOOK-08 | Phase 1 | Pending |
+| BOOK-07 | Phase 1 | Complete |
+| BOOK-08 | Phase 1 | Complete |
 | ADMIN-01 | Phase 2 | Pending |
 | ADMIN-02 | Phase 2 | Pending |
 | MOBL-01 | Phase 3 | Pending |
