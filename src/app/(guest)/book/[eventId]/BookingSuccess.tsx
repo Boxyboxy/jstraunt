@@ -18,7 +18,10 @@ export default function BookingSuccess({ bookingId, pax, event }: BookingSuccess
     sessionStorage.removeItem(`booking:${event.id}`)
   }, [event.id])
 
-  const reference = bookingId.slice(0, 8).toUpperCase()
+  // Show the full UUID so support can uniquely look up a booking. Truncating
+  // to 8 chars only gives ~32 bits of entropy, which is not unique enough at
+  // even modest booking volume. Display in groups for readability.
+  const reference = bookingId.toUpperCase()
 
   return (
     <div className="min-h-screen bg-cream-50 flex items-center justify-center px-4">
@@ -41,7 +44,7 @@ export default function BookingSuccess({ bookingId, pax, event }: BookingSuccess
           <p className="text-xs text-burgundy-400 font-medium uppercase tracking-widest mb-1">
             Booking reference
           </p>
-          <p className="font-mono text-base font-bold text-burgundy-900 tracking-wider">
+          <p className="font-mono text-xs sm:text-sm font-bold text-burgundy-900 tracking-wider break-all">
             {reference}
           </p>
         </div>
