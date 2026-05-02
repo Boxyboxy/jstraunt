@@ -13,8 +13,8 @@ Requirements for this milestone. Each maps to roadmap phases.
 - [ ] **BOOK-02**: Guest can enter allergy/dietary info for each person in party on step 2
 - [ ] **BOOK-03**: Guest can enter contact details (name, email, phone) on step 3
 - [ ] **BOOK-04**: Guest can review booking summary and confirm on step 4
-- [ ] **BOOK-05**: Booking atomically reserves seats via `create_booking` RPC
-- [ ] **BOOK-06**: Form shows live seat availability and prevents overbooking
+- [x] **BOOK-05**: Booking atomically reserves seats via `create_booking` RPC
+- [x] **BOOK-06**: Form shows live seat availability and prevents overbooking
 - [ ] **BOOK-07**: Submit button is disabled during submission to prevent double-submit
 - [ ] **BOOK-08**: Form progress persists to sessionStorage across page refreshes
 
@@ -87,8 +87,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | BOOK-02 | Phase 1 | Pending |
 | BOOK-03 | Phase 1 | Pending |
 | BOOK-04 | Phase 1 | Pending |
-| BOOK-05 | Phase 1 | Pending |
-| BOOK-06 | Phase 1 | Pending |
+| BOOK-05 | Phase 1 | Complete |
+| BOOK-06 | Phase 1 | Complete |
 | BOOK-07 | Phase 1 | Pending |
 | BOOK-08 | Phase 1 | Pending |
 | ADMIN-01 | Phase 2 | Pending |

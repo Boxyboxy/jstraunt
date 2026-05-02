@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: planning
-stopped_at: Phase 3 UI-SPEC approved (updated)
-last_updated: "2026-04-26T15:10:55.158Z"
-last_activity: 2026-04-22 — Roadmap created; ready to begin Phase 1 planning
+status: executing
+stopped_at: Completed 01-01-PLAN.md
+last_updated: "2026-05-02T02:16:54.422Z"
+last_activity: 2026-05-02
 progress:
   total_phases: 4
   completed_phases: 0
   total_plans: 4
-  completed_plans: 0
-  percent: 0
+  completed_plans: 1
+  percent: 25
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-22)
 
 **Core value:** Guests can book seats at upcoming events and provide dietary/allergy information, with the chef receiving everything needed to prepare.
-**Current focus:** Phase 1 — Booking Flow
+**Current focus:** Phase 01 — booking-flow
 
 ## Current Position
 
-Phase: 1 of 4 (Booking Flow)
-Plan: 0 of ? in current phase
-Status: Ready to plan
-Last activity: 2026-04-22 — Roadmap created; ready to begin Phase 1 planning
+Phase: 01 (booking-flow) — EXECUTING
+Plan: 2 of 4
+Status: Ready to execute
+Last activity: 2026-05-02
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [███░░░░░░░] 25%
 
 ## Performance Metrics
 
@@ -52,6 +52,7 @@ Progress: [░░░░░░░░░░] 0%
 - Trend: —
 
 *Updated after each plan completion*
+| Phase 01-booking-flow P01 | 2min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -63,6 +64,9 @@ Recent decisions affecting current work:
 - 4-step booking form with `useReducer` (not React Hook Form) — simpler for multi-step wizard
 - Fire-and-forget email notifications — must send BEFORE `redirect()` call or email is dead
 - ISR 60s revalidation for seat counts — no websockets needed
+- [Phase ?]: Booking server action uses anon Supabase client (createClient) — RPC is SECURITY DEFINER, no service-role needed
+- [Phase ?]: Sold-out guard checks event.status==='sold_out' OR seatsLeft===0 (defense in depth) — Phase 01 Plan 01
+- [Phase ?]: Booking page filters event status to ['published','sold_out'] — completed events do not accept bookings — Phase 01 Plan 01
 
 ### Pending Todos
 
@@ -86,8 +90,8 @@ None yet.
 
 ## Session Continuity
 
-Last session: --stopped-at
-Stopped at: Phase 3 UI-SPEC approved (updated)
-Resume file: --resume-file
+Last session: 2026-05-02T02:16:54.419Z
+Stopped at: Completed 01-01-PLAN.md
+Resume file: None
 
 **Planned Phase:** 1 (Booking Flow) — 4 plans — 2026-04-26T15:10:55.153Z
