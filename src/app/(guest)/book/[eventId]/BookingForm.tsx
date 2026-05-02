@@ -1,6 +1,6 @@
 'use client'
 
-import { useReducer, useEffect, useTransition } from 'react'
+import { useReducer, useEffect, useMemo, useTransition } from 'react'
 import { z } from 'zod'
 import type { Database } from '@/types/database'
 import StepIndicator from './StepIndicator'
@@ -219,7 +219,9 @@ interface BookingFormProps {
 }
 
 export default function BookingForm({ event, seatsLeft }: BookingFormProps) {
-  const SESSION_KEY = `booking:${event.id}`
+  // Stable SESSION_KEY derived from event.id; memoized so it can sit in
+  // useEffect dep arrays without triggering on every render.
+  const SESSION_KEY = useMemo(() => `booking:${event.id}`, [event.id])
   const [state, dispatch] = useReducer(
     bookingReducer,
     seatsLeft,
@@ -272,8 +274,7 @@ export default function BookingForm({ event, seatsLeft }: BookingFormProps) {
       // corrupt storage — clear and ignore
       sessionStorage.removeItem(SESSION_KEY)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [seatsLeft])
+  }, [seatsLeft, SESSION_KEY])
 
   // Save to sessionStorage on state change (excluding PII contact fields)
   useEffect(() => {
@@ -289,8 +290,7 @@ export default function BookingForm({ event, seatsLeft }: BookingFormProps) {
     } catch {
       // Storage full or disabled — ignore (best-effort persistence)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state])
+  }, [state, SESSION_KEY])
 
   function handleNext() {
     const errors = validateStep(state)
