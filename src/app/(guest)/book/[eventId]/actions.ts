@@ -49,7 +49,7 @@ export async function submitBooking(
     p_event_id: parsed.data.eventId,
     p_guest_name: parsed.data.guestName,
     p_guest_email: parsed.data.guestEmail,
-    p_guest_phone: parsed.data.guestPhone ?? '',
+    p_guest_phone: parsed.data.guestPhone,
     p_pax: parsed.data.pax,
     p_wine_pairing_count: parsed.data.winePairingCount,
     p_guest_details: parsed.data.guestDetails,

@@ -13,7 +13,10 @@ export const bookingSchema = z.object({
   eventId: z.string().uuid(),
   guestName: z.string().min(1),
   guestEmail: z.string().email(),
-  guestPhone: z.string().optional(),
+  // Phone is operationally required for day-of contact and is also marked
+  // `required` in the StepContact UI. SG numbers are 8 digits but we accept
+  // an optional country-code prefix and intervening spaces/dashes.
+  guestPhone: z.string().min(1, 'Phone number is required'),
   pax: z.number().int().min(1).max(16),
   wineOptIn: z.boolean().optional(),
   winePairingCount: z.number().int().min(0),
