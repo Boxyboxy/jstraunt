@@ -34,13 +34,27 @@ export type BookingAction =
   | { type: 'SET_PAX'; pax: number }
   | { type: 'SET_WINE_OPT_IN'; value: boolean }
   | { type: 'SET_WINE_COUNT'; count: number }
+  // Narrow the SET_GUEST_DETAIL action by field group so a free-form string
+  // (e.g., a tampered DOM value) cannot land in the strongly-typed `severity` slot.
   | {
       type: 'SET_GUEST_DETAIL'
       index: number
-      field: keyof GuestDetail
-      value: string | string[]
+      field: 'guest_name' | 'other_allergies' | 'special_requests'
+      value: string
     }
-  | { type: 'SET_CONTACT'; field: string; value: string }
+  | {
+      type: 'SET_GUEST_DETAIL'
+      index: number
+      field: 'allergies' | 'dietary_restrictions'
+      value: string[]
+    }
+  | {
+      type: 'SET_GUEST_DETAIL'
+      index: number
+      field: 'severity'
+      value: GuestDetail['severity']
+    }
+  | { type: 'SET_CONTACT'; field: 'name' | 'email' | 'phone'; value: string }
   | { type: 'NEXT_STEP' }
   | { type: 'PREV_STEP' }
   | { type: 'GO_TO_STEP'; step: 1 | 2 | 3 | 4 }

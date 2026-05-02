@@ -29,6 +29,11 @@ const SEVERITY_OPTIONS: { value: GuestDetail['severity']; label: string }[] = [
   { value: 'life_threatening', label: 'Life-threatening' },
 ]
 
+const SEVERITY_VALUES = SEVERITY_OPTIONS.map((o) => o.value)
+function isSeverity(v: string): v is GuestDetail['severity'] {
+  return (SEVERITY_VALUES as string[]).includes(v)
+}
+
 interface StepDietaryProps {
   state: Pick<FormState, 'pax' | 'guestDetails' | 'errors'>
   dispatch: React.Dispatch<BookingAction>
@@ -153,14 +158,19 @@ export default function StepDietary({ state, dispatch }: StepDietaryProps) {
             label="Allergy severity"
             options={SEVERITY_OPTIONS}
             value={guest.severity}
-            onChange={(e) =>
+            onChange={(e) => {
+              // DOM value is `string`; reject anything not in the severity union.
+              // Tampered devtools/DOM values would otherwise read as `undefined`
+              // when StepReview indexes SEVERITY_LABELS[guest.severity].
+              const v = e.target.value
+              if (!isSeverity(v)) return
               dispatch({
                 type: 'SET_GUEST_DETAIL',
                 index: i,
                 field: 'severity',
-                value: e.target.value,
+                value: v,
               })
-            }
+            }}
           />
 
           <div>
