@@ -24,6 +24,7 @@ export type FormState = {
   wineOptIn: boolean
   winePairingCount: number
   guestDetails: GuestDetail[]
+  contact: { name: string; email: string; phone: string }
   errors: Record<string, string>
   isSubmitting: boolean
   bookingId: string | null
