@@ -20,6 +20,10 @@ export type GuestDetail = {
 
 export type FormState = {
   step: 1 | 2 | 3 | 4
+  // Highest step the user has reached via NEXT_STEP. GO_TO_STEP may only
+  // navigate to steps <= highestStep, preventing skips past unfilled steps
+  // (e.g., via deep-linking or React DevTools).
+  highestStep: 1 | 2 | 3 | 4
   pax: number
   wineOptIn: boolean
   winePairingCount: number

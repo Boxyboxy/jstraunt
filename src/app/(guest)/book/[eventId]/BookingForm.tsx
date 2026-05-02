@@ -57,6 +57,7 @@ const guestDetailRestoreSchema: z.ZodType<GuestDetail> = z.object({
 const restoreSchema = z
   .object({
     step: z.union([z.literal(1), z.literal(2), z.literal(3), z.literal(4)]),
+    highestStep: z.union([z.literal(1), z.literal(2), z.literal(3), z.literal(4)]),
     pax: z.number().int().min(1),
     wineOptIn: z.boolean(),
     winePairingCount: z.number().int().min(0),
@@ -75,6 +76,7 @@ function buildInitialState(seatsLeft: number): FormState {
   const initialPax = Math.max(1, Math.min(INITIAL_PAX, seatsLeft))
   return {
     step: 1,
+    highestStep: 1,
     pax: initialPax,
     wineOptIn: false,
     winePairingCount: 0,
@@ -165,14 +167,20 @@ function bookingReducer(state: FormState, action: BookingAction): FormState {
       }
     case 'NEXT_STEP': {
       const next = Math.min(4, state.step + 1) as FormState['step']
-      return { ...state, step: next, errors: {} }
+      const highest = (next > state.highestStep ? next : state.highestStep) as FormState['step']
+      return { ...state, step: next, highestStep: highest, errors: {} }
     }
     case 'PREV_STEP': {
       const prev = Math.max(1, state.step - 1) as FormState['step']
       return { ...state, step: prev, errors: {} }
     }
-    case 'GO_TO_STEP':
-      return { ...state, step: action.step, errors: {} }
+    case 'GO_TO_STEP': {
+      // Only allow navigation to steps the user has already reached; this
+      // prevents skipping past unfilled steps (combined with NEXT_STEP gating
+      // and the validateAllSteps check in handleConfirm, this is defense in depth).
+      const target = Math.min(action.step, state.highestStep) as FormState['step']
+      return { ...state, step: target, errors: {} }
+    }
     case 'SUBMIT':
       return { ...state, isSubmitting: true, errors: {} }
     case 'SET_ERROR':
@@ -252,6 +260,12 @@ export default function BookingForm({ event, seatsLeft }: BookingFormProps) {
         if (data.winePairingCount !== undefined) {
           payload.winePairingCount = Math.min(data.winePairingCount, safePax)
         }
+      }
+      // Ensure highestStep is at least the restored step so GO_TO_STEP doesn't
+      // immediately clamp the user backwards on resume.
+      if (data.step !== undefined) {
+        const hs = Math.max(data.highestStep ?? 1, data.step) as FormState['highestStep']
+        payload.highestStep = hs
       }
       dispatch({ type: 'RESTORE', payload })
     } catch {
