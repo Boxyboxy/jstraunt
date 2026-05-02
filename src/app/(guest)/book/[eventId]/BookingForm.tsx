@@ -1,6 +1,7 @@
 'use client'
 
 import { useReducer, useEffect, startTransition } from 'react'
+import { z } from 'zod'
 import type { Database } from '@/types/database'
 import StepIndicator from './StepIndicator'
 import StepParty, {
@@ -38,6 +39,30 @@ function resizeGuestDetails(arr: GuestDetail[], targetLength: number): GuestDeta
   if (arr.length > targetLength) return arr.slice(0, targetLength)
   return [...arr, ...Array.from({ length: targetLength - arr.length }, blankGuest)]
 }
+
+// Runtime shape validation for sessionStorage payloads. Same-origin sessionStorage
+// is shared across tabs and untrusted; a malformed/stale payload could otherwise
+// desync controlled inputs (pax/winePairingCount/guestDetails) or strand the user
+// on an out-of-range step. Only restore fields that pass the schema; clamp numerics
+// to event-derived bounds at the dispatch site.
+const guestDetailRestoreSchema: z.ZodType<GuestDetail> = z.object({
+  guest_name: z.string(),
+  allergies: z.array(z.string()),
+  other_allergies: z.string(),
+  dietary_restrictions: z.array(z.string()),
+  severity: z.enum(['preference', 'intolerance', 'life_threatening']),
+  special_requests: z.string(),
+})
+
+const restoreSchema = z
+  .object({
+    step: z.union([z.literal(1), z.literal(2), z.literal(3), z.literal(4)]),
+    pax: z.number().int().min(1),
+    wineOptIn: z.boolean(),
+    winePairingCount: z.number().int().min(0),
+    guestDetails: z.array(guestDetailRestoreSchema),
+  })
+  .partial()
 
 // --- Reducer ---
 
@@ -183,20 +208,44 @@ export default function BookingForm({ event, seatsLeft }: BookingFormProps) {
   const SESSION_KEY = `booking:${event.id}`
   const [state, dispatch] = useReducer(bookingReducer, initialState)
 
-  // Restore from sessionStorage on mount
+  // Restore from sessionStorage on mount.
+  // Validates the payload with Zod before dispatching, then clamps numerics to
+  // the current event's seatsLeft (which can shrink between sessions).
   useEffect(() => {
     if (typeof window === 'undefined') return
     const saved = sessionStorage.getItem(SESSION_KEY)
     if (!saved) return
     try {
-      const parsed = JSON.parse(saved)
-      dispatch({ type: 'RESTORE', payload: parsed })
+      const result = restoreSchema.safeParse(JSON.parse(saved))
+      if (!result.success) {
+        sessionStorage.removeItem(SESSION_KEY)
+        return
+      }
+      const data = result.data
+      // Clamp pax to seatsLeft (event capacity may have decreased since the
+      // payload was saved). Resize guestDetails accordingly.
+      const safePax =
+        data.pax !== undefined
+          ? Math.min(Math.max(1, data.pax), Math.max(1, seatsLeft))
+          : undefined
+      const payload: Partial<FormState> = { ...data }
+      if (safePax !== undefined) {
+        payload.pax = safePax
+        payload.guestDetails = resizeGuestDetails(
+          data.guestDetails ?? [],
+          safePax,
+        )
+        if (data.winePairingCount !== undefined) {
+          payload.winePairingCount = Math.min(data.winePairingCount, safePax)
+        }
+      }
+      dispatch({ type: 'RESTORE', payload })
     } catch {
       // corrupt storage — clear and ignore
       sessionStorage.removeItem(SESSION_KEY)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [seatsLeft])
 
   // Save to sessionStorage on state change (excluding PII contact fields)
   useEffect(() => {
