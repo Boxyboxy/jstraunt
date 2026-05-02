@@ -32,7 +32,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans**: 4 plans
 Plans:
 - [x] 01-01-PLAN.md — Server action (submitBooking) and ISR page with sold-out guard
-- [ ] 01-02-PLAN.md — StepIndicator, StepParty, StepDietary components
+- [x] 01-02-PLAN.md — StepIndicator, StepParty, StepDietary components
 - [ ] 01-03-PLAN.md — StepContact, StepReview, BookingSuccess components
 - [ ] 01-04-PLAN.md — BookingForm root component (useReducer, sessionStorage, handleConfirm) + activate page.tsx
 **UI hint**: yes

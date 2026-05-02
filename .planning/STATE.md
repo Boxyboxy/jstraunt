@@ -4,14 +4,14 @@ milestone: v1.0
 milestone_name: milestone
 status: executing
 stopped_at: Completed 01-01-PLAN.md
-last_updated: "2026-05-02T02:16:54.422Z"
+last_updated: "2026-05-02T02:24:27.576Z"
 last_activity: 2026-05-02
 progress:
   total_phases: 4
   completed_phases: 0
   total_plans: 4
-  completed_plans: 1
-  percent: 25
+  completed_plans: 2
+  percent: 50
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-04-22)
 ## Current Position
 
 Phase: 01 (booking-flow) — EXECUTING
-Plan: 2 of 4
+Plan: 3 of 4
 Status: Ready to execute
 Last activity: 2026-05-02
 
-Progress: [███░░░░░░░] 25%
+Progress: [█████░░░░░] 50%
 
 ## Performance Metrics
 
@@ -53,6 +53,7 @@ Progress: [███░░░░░░░] 25%
 
 *Updated after each plan completion*
 | Phase 01-booking-flow P01 | 2min | 2 tasks | 2 files |
+| Phase 01-booking-flow P02 | 2min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -67,6 +68,8 @@ Recent decisions affecting current work:
 - [Phase ?]: Booking server action uses anon Supabase client (createClient) — RPC is SECURITY DEFINER, no service-role needed
 - [Phase ?]: Sold-out guard checks event.status==='sold_out' OR seatsLeft===0 (defense in depth) — Phase 01 Plan 01
 - [Phase ?]: Booking page filters event status to ['published','sold_out'] — completed events do not accept bookings — Phase 01 Plan 01
+- [Phase Phase 01 Plan 02]: [Phase 01]: StepParty exports shared FormState/BookingAction/GuestDetail types; StepDietary imports them — single source of truth before Plan 04 supersedes
+- [Phase Phase 01 Plan 02]: [Phase 01]: Pax options use Math.max(1, Math.min(8, seatsLeft)) — defensive clamp on top of page-level sold-out guard
 
 ### Pending Todos
 
@@ -90,7 +93,7 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-05-02T02:16:54.419Z
+Last session: 2026-05-02T02:21:05.503Z
 Stopped at: Completed 01-01-PLAN.md
 Resume file: None
 
