@@ -4,7 +4,11 @@ import { createClient } from '@/lib/supabase/server'
 import type { Database } from '@/types/database'
 import BookingForm from './BookingForm'
 
-export const revalidate = 60
+// Always render this page on demand: a stale seatsLeft would let the pax
+// dropdown promise more seats than are actually free, leading to a confusing
+// RPC rejection. The events listing remains cached at the layout level.
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
 
 type Event = Database['public']['Tables']['events']['Row']
 
