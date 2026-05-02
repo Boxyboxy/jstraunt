@@ -68,16 +68,22 @@ const restoreSchema = z
 
 const INITIAL_PAX = 2
 
-const initialState: FormState = {
-  step: 1,
-  pax: INITIAL_PAX,
-  wineOptIn: false,
-  winePairingCount: 0,
-  guestDetails: Array.from({ length: INITIAL_PAX }, blankGuest),
-  contact: { name: '', email: '', phone: '' },
-  errors: {},
-  isSubmitting: false,
-  bookingId: null,
+function buildInitialState(seatsLeft: number): FormState {
+  // Clamp initial pax to seatsLeft so paxOptions (capped at min(8, seatsLeft))
+  // always contains the controlled <Select>'s value. Guard against seatsLeft=0
+  // for completeness even though the page-level guard already redirects there.
+  const initialPax = Math.max(1, Math.min(INITIAL_PAX, seatsLeft))
+  return {
+    step: 1,
+    pax: initialPax,
+    wineOptIn: false,
+    winePairingCount: 0,
+    guestDetails: Array.from({ length: initialPax }, blankGuest),
+    contact: { name: '', email: '', phone: '' },
+    errors: {},
+    isSubmitting: false,
+    bookingId: null,
+  }
 }
 
 // --- Step validators ---
@@ -206,7 +212,11 @@ interface BookingFormProps {
 
 export default function BookingForm({ event, seatsLeft }: BookingFormProps) {
   const SESSION_KEY = `booking:${event.id}`
-  const [state, dispatch] = useReducer(bookingReducer, initialState)
+  const [state, dispatch] = useReducer(
+    bookingReducer,
+    seatsLeft,
+    buildInitialState,
+  )
 
   // Restore from sessionStorage on mount.
   // Validates the payload with Zod before dispatching, then clamps numerics to
