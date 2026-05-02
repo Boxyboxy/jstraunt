@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import type { Database } from '@/types/database'
-// import BookingForm from './BookingForm' // uncomment after Plan 04
+import BookingForm from './BookingForm'
 
 export const revalidate = 60
 
@@ -48,11 +48,5 @@ export default async function BookPage({ params }: PageProps) {
     )
   }
 
-  // TODO: replace placeholder with <BookingForm event={event} seatsLeft={seatsLeft} />
-  // after BookingForm.tsx is created in Plan 04
-  return (
-    <div className="min-h-screen bg-cream-50">
-      <p className="text-center py-10 text-burgundy-400 text-sm">Booking form loading...</p>
-    </div>
-  )
+  return <BookingForm event={event} seatsLeft={seatsLeft} />
 }
