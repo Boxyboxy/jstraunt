@@ -2,7 +2,7 @@
 phase: 01-booking-flow
 reviewed: 2026-05-02T00:00:00Z
 depth: standard
-files_reviewed: 9
+files_reviewed: 10
 files_reviewed_list:
   - src/app/(guest)/book/[eventId]/BookingForm.tsx
   - src/app/(guest)/book/[eventId]/BookingSuccess.tsx
@@ -13,400 +13,160 @@ files_reviewed_list:
   - src/app/(guest)/book/[eventId]/StepReview.tsx
   - src/app/(guest)/book/[eventId]/actions.ts
   - src/app/(guest)/book/[eventId]/page.tsx
+  - src/lib/validators.ts
 findings:
-  critical: 4
-  warning: 8
-  info: 5
-  total: 17
+  critical: 0
+  warning: 3
+  info: 4
+  total: 7
 status: issues_found
 ---
 
-# Phase 1: Code Review Report
+# Phase 1: Code Review Report (Re-review after auto-fix)
 
 **Reviewed:** 2026-05-02
 **Depth:** standard
-**Files Reviewed:** 9
+**Files Reviewed:** 10
 **Status:** issues_found
 
 ## Summary
 
-The Phase 1 booking flow is well-organized: a 4-step reducer-driven wizard with a thin server action that delegates atomicity to the SECURITY DEFINER `create_booking` RPC. The atomic seat-reservation pattern is sound, and the choice to omit the contact field from sessionStorage is good PII hygiene.
+This is a re-review of the Phase 1 booking flow after the auto-fix pass applied 11 of 12 in-scope fixes (WR-07 was correctly skipped as out-of-scope — it requires a schema migration for the next phase).
 
-However, several defects could cause real user-visible problems:
+**Verification of prior findings:**
+- **CR-01 (wine opt-in submits zero pairings):** Fixed. `SET_WINE_OPT_IN` now defaults `winePairingCount` to `state.pax` when count is 0; `bookingSchema` has a refine enforcing `winePairingCount >= 1` whenever `wineOptIn` is true.
+- **CR-02 (no per-step validation):** Fixed. `validateStep`/`validateAllSteps` gate `NEXT_STEP` and `Confirm`; server `submitBooking` now flattens Zod fieldErrors and the client renders per-field highlights via `SET_FIELD_ERRORS`.
+- **CR-03 (untrusted sessionStorage RESTORE):** Fixed. `restoreSchema` (Zod, partial) validates the payload; pax is clamped to `seatsLeft` and `guestDetails` is resized; corrupt payloads are dropped.
+- **CR-04 (pax > seatsLeft desync):** Fixed via `buildInitialState(seatsLeft)` lazy initializer.
+- **WR-01 (`startTransition` over async):** Fixed; now uses `useTransition` and `isPending` is the authoritative double-submit guard.
+- **WR-02 (phone optional in validator):** Fixed; `guestPhone` is now `.min(1)` required.
+- **WR-03 (loose `SET_GUEST_DETAIL` value type):** Fixed via discriminated action union + `isSeverity` runtime guard.
+- **WR-04 (`GO_TO_STEP` skips ahead):** Fixed via `highestStep` tracking and `Math.min(action.step, state.highestStep)` clamp.
+- **WR-05 (stale ISR `seatsLeft`):** Fixed; `dynamic = 'force-dynamic'` + `revalidate = 0`.
+- **WR-06 (8-char reference too short):** Fixed; full UUID is shown.
+- **WR-08 (eslint-disable on effect deps):** Fixed via `useMemo` for `SESSION_KEY`.
 
-1. **No client-side validation gates between steps.** A guest can click Next through Steps 1-3 with empty/invalid data and reach the Confirm button; the only validation is server-side. Errors bubble back as a generic "Invalid booking data" with no per-field feedback, causing a dead-end UX.
-2. **Wine opt-in submits with `winePairingCount: 0`.** The default count is 0 with options starting at 1, so the controlled `<Select>` mounts in an out-of-range state and a user who simply checks the box and proceeds will submit a wine-pairing booking with zero pairings.
-3. **`RESTORE` blindly merges untrusted sessionStorage data into reducer state.** No runtime shape validation — a malformed payload (or one persisted with stale `pax > seatsLeft`) can desync `pax`/`guestDetails`/`winePairingCount` and break controlled-component invariants.
-4. **`pax`/`maxPax` desync when `seatsLeft < INITIAL_PAX`.** Initial state has `pax = 2`, but `paxOptions` is capped at `seatsLeft`. If `seatsLeft === 1`, `<Select value="2">` renders but only `[1]` is in options — React warns about controlled-vs-actual value mismatch and the displayed UI lies about party size.
-
-The submission path is otherwise robust thanks to the RPC, but the front-end happily lets users submit invalid combinations that the back-end will reject with confusing messages.
-
-## Critical Issues
-
-### CR-01: Wine opt-in defaults to 0 pairings, allowing nonsensical submission
-
-**File:** `src/app/(guest)/book/[eventId]/BookingForm.tsx:46-56`, `src/app/(guest)/book/[eventId]/StepParty.tsx:70-76, 118-132`
-**Severity:** BLOCKER
-
-**Issue:** Initial state has `winePairingCount: 0`. When the user checks the wine opt-in box (`SET_WINE_OPT_IN` with `value: true`), the reducer keeps `winePairingCount` at its current value (0). The wine-count `<Select>` is then rendered with `value="0"` but its `wineCountOptions` start at `1` (`Array.from({ length: state.pax }, (_, i) => ({ value: String(i + 1) }))`). This causes:
-
-1. A controlled-select mismatch (no option matches `value="0"` → React warns, browser may pick the first option visually but state stays 0).
-2. A user who simply ticks "Add wine pairing" and hits Next/Confirm submits `wineOptIn=true, winePairingCount=0` — Zod's `winePairingCount: z.number().int().min(0)` accepts it, and the RPC computes `0 * wine_price = 0`, so the booking is created with zero wine pairings despite the user opting in. The user's intent is silently lost.
-
-**Fix:** When `SET_WINE_OPT_IN` flips on, default `winePairingCount` to `state.pax` (or at least 1). And/or refuse to submit if `wineOptIn && winePairingCount === 0`.
-
-```tsx
-case 'SET_WINE_OPT_IN':
-  return {
-    ...state,
-    wineOptIn: action.value,
-    winePairingCount: action.value
-      ? (state.winePairingCount > 0 ? state.winePairingCount : state.pax)
-      : 0,
-    errors: {},
-  }
-```
-
-Also add to `bookingSchema` in `validators.ts`:
-
-```ts
-.refine(
-  (data) => data.winePairingCount === 0 || data.winePairingCount >= 1,
-  { message: 'Wine pairing count must be at least 1 when enabled' }
-)
-```
-
----
-
-### CR-02: No per-step validation — invalid data reaches the server with a useless error
-
-**File:** `src/app/(guest)/book/[eventId]/BookingForm.tsx:94-101, 245-253`, `src/app/(guest)/book/[eventId]/actions.ts:26-28`
-**Severity:** BLOCKER
-
-**Issue:** The `NEXT_STEP` reducer case unconditionally advances the step. The user can:
-
-- Reach Step 2 with `pax=2` then proceed to Step 4 without filling in any guest names.
-- Reach Step 4 with `contact.name=''`, `contact.email=''`, `contact.phone=''` — `<input required>` HTML validation never fires because the form is not submitted via a real `<form onSubmit>`; the Confirm button is a `type="button"`.
-- Click "Confirm Booking", which calls `submitBooking`, which calls `bookingSchema.safeParse` and returns the catch-all `{ error: 'Invalid booking data' }` — no field-level breakdown is sent back.
-
-The user sees only a generic error in the form banner with no indication of which field is wrong, no scroll-to-error, no per-field highlighting. `errors` is typed `Record<string, string>` and `StepContact` already wires up `errors.name`/`errors.email`/`errors.phone`, but nothing ever populates them.
-
-**Fix:** Add a step-level validator before each `NEXT_STEP` dispatch (or do it inside the reducer). Suggested:
-
-```tsx
-function validateStep(state: FormState): Record<string, string> {
-  const errors: Record<string, string> = {}
-  if (state.step === 1) {
-    if (state.wineOptIn && state.winePairingCount < 1) {
-      errors.winePairingCount = 'Choose at least one wine pairing'
-    }
-  }
-  if (state.step === 2) {
-    state.guestDetails.forEach((g, i) => {
-      if (!g.guest_name.trim()) errors[`guestDetails.${i}.guest_name`] = 'Required'
-    })
-  }
-  if (state.step === 3) {
-    if (!state.contact.name.trim()) errors.name = 'Required'
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(state.contact.email)) errors.email = 'Valid email required'
-    if (!state.contact.phone.trim()) errors.phone = 'Required'
-  }
-  return errors
-}
-```
-
-Run this before dispatching `NEXT_STEP` and before `handleConfirm`. Additionally, when the server action returns a Zod error, surface field-level issues by returning `parsed.error.flatten().fieldErrors` rather than a flat string.
-
----
-
-### CR-03: `RESTORE` action accepts untrusted sessionStorage payload without runtime validation
-
-**File:** `src/app/(guest)/book/[eventId]/BookingForm.tsx:114-122, 140-152`
-**Severity:** BLOCKER
-
-**Issue:** The mount-time effect reads `sessionStorage`, `JSON.parse`s it, and dispatches the result as `RESTORE` with `payload: parsed`. The reducer spreads it directly into state:
-
-```tsx
-case 'RESTORE':
-  return {
-    ...state,
-    ...action.payload,
-    isSubmitting: false,
-    bookingId: null,
-    errors: {},
-  }
-```
-
-There is no shape validation. If a user (or a script in the same origin, e.g., another tab on the same domain) writes garbage to `sessionStorage.setItem('booking:<eventId>', ...)`, the parsed value is merged into state. Concrete failure modes:
-
-- `pax: "5"` (string) — passes JSON.parse, breaks `state.pax * event.price_per_seat` in StepParty (NaN), Zod rejects on submit.
-- `pax: 99` — exceeds seatsLeft and `paxOptions` (which caps at `min(8, seatsLeft)`). Renders `<Select value="99">` with no matching option (controlled-component warning). User can submit, RPC rejects with confusing seat-shortage error.
-- `guestDetails: null` or `[]` — `state.guestDetails.map(...)` in StepDietary/StepReview throws `TypeError: Cannot read properties of null`.
-- `step: 7` — out-of-range, no step renders, user is stranded on a blank screen.
-- `wineOptIn: true, winePairingCount: 999` — submits invalid data.
-- Persisted state from a different `event.id` (if SESSION_KEY collides during dev) — pax may exceed the new event's seatsLeft.
-
-Same-origin sessionStorage is shared across tabs and not authenticated; never trust it without runtime parsing.
-
-**Fix:** Validate the parsed payload with Zod before dispatching. Also guard against `pax > seatsLeft` and `step` out of range:
-
-```tsx
-const restoreSchema = z.object({
-  step: z.union([z.literal(1), z.literal(2), z.literal(3), z.literal(4)]),
-  pax: z.number().int().min(1).max(seatsLeft),
-  wineOptIn: z.boolean(),
-  winePairingCount: z.number().int().min(0),
-  guestDetails: z.array(guestDetailSchema),
-}).partial()
-
-useEffect(() => {
-  const saved = sessionStorage.getItem(SESSION_KEY)
-  if (!saved) return
-  try {
-    const parsed = restoreSchema.safeParse(JSON.parse(saved))
-    if (!parsed.success) {
-      sessionStorage.removeItem(SESSION_KEY)
-      return
-    }
-    // Also clamp pax/winePairingCount and resize guestDetails to match
-    const safePax = Math.min(parsed.data.pax ?? INITIAL_PAX, seatsLeft)
-    dispatch({ type: 'RESTORE', payload: {
-      ...parsed.data,
-      pax: safePax,
-      guestDetails: resizeGuestDetails(parsed.data.guestDetails ?? [], safePax),
-      winePairingCount: Math.min(parsed.data.winePairingCount ?? 0, safePax),
-    }})
-  } catch {
-    sessionStorage.removeItem(SESSION_KEY)
-  }
-}, [seatsLeft, SESSION_KEY])
-```
-
----
-
-### CR-04: `state.pax` can exceed `seatsLeft`, causing controlled-select desync and ghost guest cards
-
-**File:** `src/app/(guest)/book/[eventId]/BookingForm.tsx:44-51`, `src/app/(guest)/book/[eventId]/StepParty.tsx:65-69`
-**Severity:** BLOCKER
-
-**Issue:** `INITIAL_PAX = 2` but the page-level guard only checks `seatsLeft === 0`. If an event has exactly 1 seat left:
-
-- `seatsLeft = 1`, page renders `<BookingForm seatsLeft={1} />` (not sold out).
-- `initialState.pax = 2` and `initialState.guestDetails` has 2 entries.
-- `StepParty` computes `maxPax = Math.max(1, Math.min(8, 1)) = 1`, generates `paxOptions = [{ value: '1' }]`.
-- `<Select value={String(state.pax)}>` is `value="2"` — no matching option. React logs a warning; in most browsers the select displays the first option ("1") but state.pax stays at 2.
-- StepDietary renders 2 guest cards.
-- StepReview computes price for 2 guests.
-- User clicks Confirm, RPC rejects with "Not enough seats available. Requested: 2, Available: 1" — but the UI clearly showed "1 guest" in the dropdown.
-
-**Fix:** Clamp the initial pax to `seatsLeft` when constructing the reducer's initial state:
-
-```tsx
-export default function BookingForm({ event, seatsLeft }: BookingFormProps) {
-  const initialPax = Math.min(INITIAL_PAX, seatsLeft)
-  const [state, dispatch] = useReducer(bookingReducer, {
-    ...initialState,
-    pax: initialPax,
-    guestDetails: Array.from({ length: initialPax }, blankGuest),
-  })
-  // ...
-}
-```
-
-Also, the `SET_PAX` reducer should ideally clamp to `seatsLeft` too, but the reducer has no access to it. Either (a) plumb `seatsLeft` through actions, or (b) clamp at dispatch site in StepParty.
-
----
+The fixes are correct in substance. However, the auto-fix pass introduced or left unaddressed several smaller issues, listed below. None are blockers; the code is now production-shippable from a correctness standpoint.
 
 ## Warnings
 
-### WR-01: `startTransition` wrapping an async function — should be `useTransition`
+### WR-01: `winePairingCount` is not clamped when restoring a payload that omits `pax`
 
-**File:** `src/app/(guest)/book/[eventId]/BookingForm.tsx:171-190`
+**File:** `src/app/(guest)/book/[eventId]/BookingForm.tsx:251-265`
 
-**Issue:** `startTransition(async () => { ... })` runs in React 19 but it's the lower-level form. The hook `useTransition` returns an `isPending` boolean that gives a more reliable submission state than the manually managed `state.isSubmitting`. More importantly, if the user clicks Confirm twice quickly between `dispatch({ type: 'SUBMIT' })` and the next render, the second click will re-enter (the `if (state.isSubmitting) return` guard reads stale state from the closure — `state` is captured from the render that produced this `handleConfirm`, so the second click reads `isSubmitting=false` until a re-render happens).
+**Issue:** The restore effect only clamps `winePairingCount` inside the `if (safePax !== undefined)` block. If a sessionStorage payload contains a valid `winePairingCount` but no `pax` (legitimate or tampered), the count is restored unchecked and may exceed the current `state.pax` (which stays at the initial value). After restore, the StepParty `<Select>` has `value="<count>"` while options are `[1..pax]` — controlled-select desync.
 
-**Fix:** Use `useTransition`:
+The same applies to `pax` being absent: `data.pax === undefined` skips the `guestDetails` resize step too, so a payload with N guestDetails entries but no pax can leave `state.pax = INITIAL_PAX` while `state.guestDetails.length = N`. StepDietary then renders N cards but StepParty shows pax=2.
+
+**Fix:** Clamp/resize unconditionally based on the resolved pax (restored value or current state):
 
 ```tsx
-const [isPending, startTransition] = useTransition()
-// ...
-function handleConfirm() {
-  if (isPending) return
-  startTransition(async () => {
-    const result = await submitBooking({ ... })
-    // ...
-  })
+const resolvedPax = data.pax !== undefined
+  ? Math.min(Math.max(1, data.pax), Math.max(1, seatsLeft))
+  : state.pax  // not available here in effect; fall back to INITIAL_PAX or read via ref
+const payload: Partial<FormState> = {
+  ...data,
+  pax: resolvedPax,
+  guestDetails: resizeGuestDetails(data.guestDetails ?? [], resolvedPax),
+  winePairingCount: Math.min(data.winePairingCount ?? 0, resolvedPax),
 }
 ```
 
-Or guard via a ref (`submittingRef.current`) which doesn't get captured stale.
+If implementing this requires reading current state from inside the mount effect (which captures initial state only), invariants can be enforced inside the reducer's `RESTORE` case instead — that has access to current state.
 
 ---
 
-### WR-02: Phone field is required in UI but optional in validator
+### WR-02: Server-side Zod field errors with nested paths are not surfaced per-field on the client
 
-**File:** `src/app/(guest)/book/[eventId]/StepContact.tsx:50-60`, `src/lib/validators.ts:16`
+**File:** `src/app/(guest)/book/[eventId]/actions.ts:32-44`
 
-**Issue:** `<Input ... required>` for phone, but `bookingSchema` has `guestPhone: z.string().optional()` and `actions.ts` sends `guestPhone: parsed.data.guestPhone ?? ''`. Either the UI is wrong or the validator is wrong. If phone is operationally required (it likely is, since events use it for day-of contact), the validator should require non-empty.
+**Issue:** `parsed.error.flatten().fieldErrors` returns errors only at the top level of the schema (e.g., `guestDetails`, `pax`, `eventId`). Errors on nested paths such as `guestDetails.0.guest_name` get collapsed under the parent key `guestDetails`, so the client cannot highlight the specific guest card. The mapping table `{ guestName, guestEmail, guestPhone }` only covers root-level keys; `guestDetails` is not mapped at all.
 
-**Fix:** Add `min(1)` (and ideally a Singapore phone regex) to `bookingSchema.guestPhone`, and remove the `?? ''` fallback in `actions.ts` — empty string for a "required for ops" field shouldn't silently succeed.
+In practice the client `validateStep` runs first so this is a defense-in-depth path, but if a malicious client bypasses local validation, the server returns a confusing aggregated error with no field highlight (the user sees `Please correct the highlighted fields.` banner with nothing actually highlighted).
 
----
-
-### WR-03: `SET_GUEST_DETAIL` action's `value` type allows invalid severity strings
-
-**File:** `src/app/(guest)/book/[eventId]/StepParty.tsx:37-42`, `src/app/(guest)/book/[eventId]/StepDietary.tsx:151-164`
-
-**Issue:** The action is typed:
+**Fix:** Use `parsed.error.format()` (or iterate `parsed.error.issues` to build dotted paths) so nested errors land in `guestDetails.0.guest_name` keys that match the existing `state.errors` shape:
 
 ```ts
-| { type: 'SET_GUEST_DETAIL'; index: number; field: keyof GuestDetail; value: string | string[] }
+const fieldErrors: Record<string, string> = {}
+for (const issue of parsed.error.issues) {
+  const path = issue.path.join('.')
+  const uiKey = map[path] ?? path
+  if (!fieldErrors[uiKey]) fieldErrors[uiKey] = issue.message
+}
 ```
 
-Then the StepDietary severity `<Select>` dispatches `value: e.target.value` (untyped string). The reducer just spreads it into `guestDetails[i][field]`. A user who tampers with the DOM (changes the option value via devtools) can set `severity: "haha"` — the Zod schema catches it on submit, but until then `StepReview` reads `SEVERITY_LABELS[guest.severity]` which returns `undefined` and renders an empty Badge.
+---
 
-**Fix:** Narrow the action union, e.g.:
+### WR-03: `bookingId: null` falls through to `SET_SUCCESS` without runtime validation
+
+**File:** `src/app/(guest)/book/[eventId]/actions.ts:58-59`
+
+**Issue:** `return { bookingId: data as string }`. The RPC should always return a UUID on success, but `data` is typed as `unknown` and the cast bypasses any check. If for any reason `data` is `null` or a non-string, `SET_SUCCESS` dispatches with `bookingId: null`, the success branch in BookingForm (`if (state.bookingId)`) is falsy, and the user sees the form re-render with no error and no confirmation — a silent dead end after a successful charge-equivalent action.
+
+**Fix:** Validate `data` before returning:
 
 ```ts
-| { type: 'SET_GUEST_DETAIL'; index: number; field: 'guest_name' | 'other_allergies' | 'special_requests'; value: string }
-| { type: 'SET_GUEST_DETAIL'; index: number; field: 'allergies' | 'dietary_restrictions'; value: string[] }
-| { type: 'SET_GUEST_DETAIL'; index: number; field: 'severity'; value: GuestDetail['severity'] }
+if (typeof data !== 'string' || data.length === 0) {
+  return { error: 'Booking succeeded but the server returned an invalid reference. Please contact support.' }
+}
+return { bookingId: data }
 ```
-
-And cast/validate severity at the dispatch site.
-
----
-
-### WR-04: `GO_TO_STEP` lets user skip forward past unfilled steps
-
-**File:** `src/app/(guest)/book/[eventId]/BookingForm.tsx:102-103`, `src/app/(guest)/book/[eventId]/StepReview.tsx:66-90`
-
-**Issue:** The Edit buttons in StepReview dispatch `GO_TO_STEP` to jump back, which is fine. But the action accepts any `1 | 2 | 3 | 4` and the reducer doesn't enforce that the user has actually completed prior steps. Combined with CR-02, this means StepReview itself becomes reachable without filling in dietary or contact — if the user navigates to `/book/<eventId>` and then somehow dispatches `GO_TO_STEP` (e.g., via React DevTools, or in the future via deep-linking), they land on a Confirm screen with empty data.
-
-**Fix:** Either (a) only allow `GO_TO_STEP` to navigate to a step ≤ the highest completed step (track in state), or (b) validate the entire form on Confirm regardless of step.
-
----
-
-### WR-05: Stale `seatsLeft` from ISR — UI shows seat count that may be wrong by up to 60s
-
-**File:** `src/app/(guest)/book/[eventId]/page.tsx:7, 30`
-
-**Issue:** `export const revalidate = 60` plus computing `seatsLeft = event.total_seats - event.booked_seats` server-side and passing it to a client component means the seat count is up to 60 seconds stale. The pax dropdown caps at this stale value, so a user could load a page showing "8 seats left", spend 30 seconds filling the form, and submit while only 1 seat remains — RPC will reject with a confusing message.
-
-The atomicity is fine (server enforces), but UX would be much better with one of:
-1. `revalidate = 0` (no caching) for the booking page only.
-2. A client-side fetch on mount to refresh seatsLeft.
-3. A live query/subscription (overkill for v1).
-
-**Fix:** Set `export const revalidate = 0` (or even `dynamic = 'force-dynamic'`) on the booking page. The events listing can stay cached.
-
----
-
-### WR-06: `bookingId.slice(0, 8)` reference code is not unique enough
-
-**File:** `src/app/(guest)/book/[eventId]/BookingSuccess.tsx:21`
-
-**Issue:** Taking the first 8 hex chars of a UUID gives roughly 32 bits of entropy. With even moderate booking volume, two bookings could share the same 8-char prefix; if a user calls in with their reference code, ops cannot uniquely identify the booking. Worse, UUIDv4 prefix is not even guaranteed unique within a single event.
-
-**Fix:** Use the full UUID (or last 8 chars), or generate a separate human-readable reference column server-side (e.g., `PAL-2026-XXXX`). At minimum, display the full UUID so support can look it up.
-
----
-
-### WR-07: Booking RPC's email upsert silently overwrites existing guest names/phones
-
-**File:** `supabase/migrations/003_functions.sql:48-53` (referenced by `actions.ts`)
-
-**Issue:** The `create_booking` RPC does:
-```sql
-INSERT INTO guests (name, email, phone)
-VALUES (...)
-ON CONFLICT (email) DO UPDATE SET
-  name = EXCLUDED.name,
-  phone = COALESCE(EXCLUDED.phone, guests.phone);
-```
-
-If two different people share an email (e.g., a household), the second booking overwrites the first guest's name. In Phase 1 this might be the intended pattern (one guest record per email), but the coupling between contact-email-as-identity and the booking-form contact field is implicit and undocumented. A user booking on behalf of a colleague could overwrite their own profile.
-
-**Fix:** Either document this as the intended identity model, or namespace bookings by both email and an additional unique key. Out of scope for the front-end fix, but flag for the next phase.
-
----
-
-### WR-08: `useEffect` dependency arrays disabled with eslint-disable — RESTORE/save logic depends on `SESSION_KEY`
-
-**File:** `src/app/(guest)/book/[eventId]/BookingForm.tsx:151-152, 168-169`
-
-**Issue:** Both effects disable `react-hooks/exhaustive-deps`. The mount effect (`[]`) is intentional, but `SESSION_KEY` derived from `event.id` *is* a real dependency: if `event.id` ever changes (e.g., during dev with HMR or routing remount), the saved key will lag. The save effect (`[state]`) writes to a key that depends on `event.id` — currently this is fine because the component always remounts when `event.id` changes, but it's a fragile assumption.
-
-**Fix:** Move `SESSION_KEY` outside the effect and include it in deps explicitly, or wrap with `useMemo`. Wider fix: include `seatsLeft` in the restore effect's deps once it's used to clamp restored state (CR-03 fix).
 
 ---
 
 ## Info
 
-### IN-01: `SESSION_KEY` recomputed on every render
+### IN-01: Persisted sessionStorage payload still includes `errors`/`isSubmitting`
 
-**File:** `src/app/(guest)/book/[eventId]/BookingForm.tsx:136`
+**File:** `src/app/(guest)/book/[eventId]/BookingForm.tsx:286-289`
 
-**Issue:** `const SESSION_KEY = \`booking:${event.id}\`` is a string concat on every render. Trivial cost, but not idiomatic. Wrap with `useMemo` or compute once outside the function (since `event.id` doesn't change for the component's lifetime, an inline `useRef` is also fine).
+**Issue:** Only `contact` is excluded from `nonPii` — `errors`, `isSubmitting`, and `bookingId` (when null) are still serialized. They are correctly overridden in the RESTORE reducer case, so no functional impact, but transient validation errors are written to sessionStorage on every keystroke that fails validation. Storage payload is bloated and may briefly contain stale error text.
 
-**Fix:** `const SESSION_KEY = useMemo(() => \`booking:${event.id}\`, [event.id])`.
+**Fix:** Exclude all transient fields explicitly:
 
----
-
-### IN-02: `_contact` rename to silence eslint is ugly
-
-**File:** `src/app/(guest)/book/[eventId]/BookingForm.tsx:161-162`
-
-**Issue:** `const { contact: _contact, ...nonPii } = state` with eslint-disable comment is a workaround for `no-unused-vars`. Cleaner: just spread and delete, or build the object explicitly.
-
-**Fix:**
 ```ts
-const { contact, ...nonPii } = state
-void contact // explicitly ignore
-sessionStorage.setItem(SESSION_KEY, JSON.stringify(nonPii))
+const { contact, errors, isSubmitting, bookingId, ...persisted } = state
+sessionStorage.setItem(SESSION_KEY, JSON.stringify(persisted))
 ```
-Or:
+
+---
+
+### IN-02: `BookingSuccess` redundantly clears storage already cleared by the persist effect
+
+**File:** `src/app/(guest)/book/[eventId]/BookingSuccess.tsx:17-19`
+
+**Issue:** The persist effect in `BookingForm` (line 282-285) already calls `sessionStorage.removeItem(SESSION_KEY)` when `state.bookingId` is set. `BookingSuccess`'s mount effect then does the same removal again. Harmless, but the duplication suggests one of the two is dead code. The `BookingForm`-side removal is the right place (it owns the lifecycle); the `BookingSuccess`-side useEffect can be deleted.
+
+**Fix:** Remove the useEffect from `BookingSuccess.tsx`, or rely on it solely and remove the corresponding branch from `BookingForm`'s persist effect.
+
+---
+
+### IN-03: `validators.ts` still has no max length on free-text fields
+
+**File:** `src/lib/validators.ts:3-19`
+
+**Issue:** Carryover from the previous IN-04. `guest_name`, `other_allergies`, `special_requests`, `guestName`, `guestEmail`, `guestPhone` have no `.max(N)` — a 100KB string for `special_requests` will be accepted and stored, bloating the database. The DB column types aren't visible here but typically TEXT has no implicit cap. Not a security blocker (the RPC is parameterised), but a denial-of-service / data-quality risk.
+
+**Fix:** Add reasonable maxes that match the DB column constraints:
+
 ```ts
-const { errors, isSubmitting, bookingId, contact, ...nonPii } = state
-sessionStorage.setItem(SESSION_KEY, JSON.stringify({ ...nonPii }))
+guest_name: z.string().min(1, 'Name is required').max(100),
+other_allergies: z.string().max(500).optional(),
+special_requests: z.string().max(1000).optional(),
+guestEmail: z.string().email().max(254), // RFC 5321
+guestPhone: z.string().min(1).max(32),
+guestName: z.string().min(1).max(100),
 ```
 
-(Note: errors/isSubmitting/bookingId are already excluded on RESTORE, but they're still serialized here. Worth excluding to keep storage payload minimal.)
-
 ---
 
-### IN-03: `validators.ts` allows `pax: 16` but UI caps at 8
+### IN-04: `validators.ts` still has `pax.max(16)` while UI caps at 8
 
-**File:** `src/lib/validators.ts:17`, `src/app/(guest)/book/[eventId]/StepParty.tsx:65`
+**File:** `src/lib/validators.ts:20`, `src/app/(guest)/book/[eventId]/StepParty.tsx:84`
 
-**Issue:** `bookingSchema.pax` is `z.number().int().min(1).max(16)` but the UI caps party size at `Math.min(8, seatsLeft)`. The validator's max 16 doesn't match any visible business rule and likely came from a different intent. Pick one source of truth (likely max should align with the largest event capacity, i.e., 30 from `eventSchema.total_seats`, or the per-booking party cap if there is one).
+**Issue:** Carryover from the previous IN-03. UI builds `paxOptions` from `Math.min(8, seatsLeft)` but `bookingSchema.pax` accepts up to 16. The mismatch is harmless today (RPC enforces the seat count), but the validator's max is not derived from any business rule visible in this codebase and creates ambiguity for future maintainers.
 
-**Fix:** Document the intended max party size in a constant and use it in both places.
-
----
-
-### IN-04: No max length on free-text fields
-
-**File:** `src/lib/validators.ts:3-10`, all step files
-
-**Issue:** `guest_name`, `other_allergies`, `special_requests`, `contact.name`, `contact.email` have no max-length validation. A malicious or careless user can submit a 10,000-char string for `special_requests` and bloat the database. RPC has no length cap either.
-
-**Fix:** Add `.max(N)` to each string field in `validators.ts` (e.g., 100 for names, 500 for free text, 254 for email per RFC 5321). Match DB column constraints.
-
----
-
-### IN-05: `wine_price ?? 0` means broken data renders silently as $0
-
-**File:** `src/app/(guest)/book/[eventId]/StepParty.tsx:113-114, 145-146`
-
-**Issue:** When `event.wine_pairing === true` but `event.wine_price === null` (data integrity issue from event creation), the UI renders "Add wine pairing ($0.00/person)". Better to either hide the wine option entirely or show a clear "wine pairing unavailable" message.
-
-**Fix:**
-```tsx
-{event.wine_pairing && event.wine_price && event.wine_price > 0 && (
-  // ... wine UI
-)}
-```
+**Fix:** Define a shared constant `MAX_PAX_PER_BOOKING = 8` (or whatever the operational rule is), import it in both files, and use it in the validator's `.max()` and StepParty's `paxOptions` computation.
 
 ---
 
