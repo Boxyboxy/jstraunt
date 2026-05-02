@@ -15,6 +15,7 @@ export const bookingSchema = z.object({
   guestEmail: z.string().email(),
   guestPhone: z.string().optional(),
   pax: z.number().int().min(1).max(16),
+  wineOptIn: z.boolean().optional(),
   winePairingCount: z.number().int().min(0),
   guestDetails: z.array(guestDetailSchema).min(1),
 }).refine(
@@ -23,6 +24,10 @@ export const bookingSchema = z.object({
 ).refine(
   (data) => data.winePairingCount <= data.pax,
   { message: 'Wine pairings cannot exceed party size' }
+).refine(
+  // If wine is opted in, count must be at least 1 (avoid silently submitting zero pairings).
+  (data) => !data.wineOptIn || data.winePairingCount >= 1,
+  { message: 'Wine pairing count must be at least 1 when enabled', path: ['winePairingCount'] }
 )
 
 export const eventSchema = z.object({

@@ -71,7 +71,13 @@ function bookingReducer(state: FormState, action: BookingAction): FormState {
       return {
         ...state,
         wineOptIn: action.value,
-        winePairingCount: action.value ? state.winePairingCount : 0,
+        // When opting in, default to current count if non-zero, else fall back to pax
+        // (avoids submitting wineOptIn=true with winePairingCount=0).
+        winePairingCount: action.value
+          ? state.winePairingCount > 0
+            ? state.winePairingCount
+            : state.pax
+          : 0,
         errors: {},
       }
     case 'SET_WINE_COUNT':
@@ -178,6 +184,7 @@ export default function BookingForm({ event, seatsLeft }: BookingFormProps) {
         guestEmail: state.contact.email,
         guestPhone: state.contact.phone,
         pax: state.pax,
+        wineOptIn: state.wineOptIn,
         winePairingCount: state.winePairingCount,
         guestDetails: state.guestDetails,
       })
