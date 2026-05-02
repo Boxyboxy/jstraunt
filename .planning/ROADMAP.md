@@ -33,7 +33,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 Plans:
 - [x] 01-01-PLAN.md — Server action (submitBooking) and ISR page with sold-out guard
 - [x] 01-02-PLAN.md — StepIndicator, StepParty, StepDietary components
-- [ ] 01-03-PLAN.md — StepContact, StepReview, BookingSuccess components
+- [x] 01-03-PLAN.md — StepContact, StepReview, BookingSuccess components
 - [ ] 01-04-PLAN.md — BookingForm root component (useReducer, sessionStorage, handleConfirm) + activate page.tsx
 **UI hint**: yes
 
@@ -74,7 +74,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Booking Flow | 1/4 | In Progress|  |
+| 1. Booking Flow | 3/4 | In Progress|  |
 | 2. Admin Bookings | 0/? | Not started | - |
 | 3. Mobile Responsive | 0/? | Not started | - |
 | 4. SEO | 0/? | Not started | - |
