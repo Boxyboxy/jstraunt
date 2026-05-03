@@ -27,19 +27,23 @@ export async function submitBooking(
 > {
   const parsed = bookingSchema.safeParse(payload)
   if (!parsed.success) {
-    // Flatten Zod field errors so the client can highlight the offending input.
-    // Map server-side field names back to the client's UI field names where they differ.
-    const flat = parsed.error.flatten()
+    // Build a per-field error map keyed by dotted Zod issue paths so nested
+    // errors (e.g. `guestDetails.0.guest_name`) match the client's
+    // state.errors shape and highlight the specific guest card. Using
+    // .flatten() here would collapse all `guestDetails.*` issues under the
+    // root `guestDetails` key and the UI would show no field highlight.
     const fieldErrors: Record<string, string> = {}
     const map: Record<string, string> = {
       guestName: 'name',
       guestEmail: 'email',
       guestPhone: 'phone',
     }
-    for (const [key, msgs] of Object.entries(flat.fieldErrors)) {
-      if (!msgs || msgs.length === 0) continue
-      const uiKey = map[key] ?? key
-      fieldErrors[uiKey] = msgs[0] as string
+    for (const issue of parsed.error.issues) {
+      const path = issue.path.join('.')
+      if (!path) continue
+      const uiKey = map[path] ?? path
+      // Keep the first issue per field (matches prior flatten() behavior).
+      if (!fieldErrors[uiKey]) fieldErrors[uiKey] = issue.message
     }
     return { error: 'Please correct the highlighted fields.', fieldErrors }
   }
