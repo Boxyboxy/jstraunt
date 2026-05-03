@@ -1,9 +1,9 @@
 ---
-status: complete
+status: diagnosed
 phase: 01-booking-flow
 source: [01-01-SUMMARY.md, 01-02-SUMMARY.md, 01-03-SUMMARY.md, 01-04-SUMMARY.md]
 started: 2026-05-03T00:00:00Z
-updated: 2026-05-03T00:35:00Z
+updated: 2026-05-03T00:36:00Z
 ---
 
 ## Current Test
@@ -90,5 +90,14 @@ blocked: 0
   reason: "User reported: For Phone (type=tel, placeholder \"+65\"). No validation on number. alphabets are allowed"
   severity: major
   test: 6
-  artifacts: []
-  missing: []
+  root_cause: "src/lib/validators.ts:19 — guestPhone uses only `z.string().min(1)` with no format constraint. Browser `type=tel` is a soft hint and does not validate. No client-side `pattern` attribute either. Result: any non-empty string (including alphabets) passes both client and server validation and is persisted to bookings.guest_phone."
+  artifacts:
+    - path: "src/lib/validators.ts:19"
+      issue: "guestPhone Zod schema lacks format validation (regex/transform)"
+    - path: "src/app/(guest)/book/[eventId]/BookingForm.tsx"
+      issue: "Phone <input type=tel> has no pattern attribute or onChange sanitization"
+  missing:
+    - "Add Zod regex to guestPhone constraining to phone-format characters: `/^\\+?[0-9\\s\\-]{7,20}$/` (allows leading +, digits, spaces, hyphens; 7-20 chars total to cover SG and international)"
+    - "Surface validation error message ('Enter a valid phone number, digits only') in fieldErrors map (already wired via dotted-path errors in actions.ts)"
+    - "Optional: add `pattern` and `inputMode=\"tel\"` on the Phone input for better mobile UX and client-side hint (does not replace Zod validation)"
+    - "Re-run Test 6 with alphabetic input to confirm rejection with inline field error"
