@@ -246,22 +246,26 @@ export default function BookingForm({ event, seatsLeft }: BookingFormProps) {
         return
       }
       const data = result.data
-      // Clamp pax to seatsLeft (event capacity may have decreased since the
-      // payload was saved). Resize guestDetails accordingly.
-      const safePax =
+      // Resolve pax: clamp restored value to seatsLeft, or fall back to the
+      // initial pax used by buildInitialState (already clamped to seatsLeft).
+      // Always derive resolvedPax even when data.pax is absent so guestDetails
+      // and winePairingCount are clamped against a consistent cap — otherwise a
+      // payload with N guestDetails or winePairingCount > INITIAL_PAX but no
+      // pax would desync the controlled <Select> in StepParty.
+      const initialPax = Math.max(1, Math.min(INITIAL_PAX, seatsLeft))
+      const resolvedPax =
         data.pax !== undefined
           ? Math.min(Math.max(1, data.pax), Math.max(1, seatsLeft))
-          : undefined
-      const payload: Partial<FormState> = { ...data }
-      if (safePax !== undefined) {
-        payload.pax = safePax
+          : initialPax
+      const payload: Partial<FormState> = { ...data, pax: resolvedPax }
+      if (data.guestDetails !== undefined || data.pax !== undefined) {
         payload.guestDetails = resizeGuestDetails(
           data.guestDetails ?? [],
-          safePax,
+          resolvedPax,
         )
-        if (data.winePairingCount !== undefined) {
-          payload.winePairingCount = Math.min(data.winePairingCount, safePax)
-        }
+      }
+      if (data.winePairingCount !== undefined) {
+        payload.winePairingCount = Math.min(data.winePairingCount, resolvedPax)
       }
       // Ensure highestStep is at least the restored step so GO_TO_STEP doesn't
       // immediately clamp the user backwards on resume.
