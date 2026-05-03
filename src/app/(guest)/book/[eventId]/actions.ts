@@ -60,5 +60,16 @@ export async function submitBooking(
   })
 
   if (error) return { error: mapRpcError(error.message) }
-  return { bookingId: data as string }
+  // Defensive: the RPC contract returns a UUID on success, but `data` is typed
+  // as unknown. If something unexpected slips through (RPC change, transient
+  // null), surface a real error instead of dispatching SET_SUCCESS with a
+  // falsy bookingId — that would re-render the form with no error and no
+  // confirmation, stranding the user after the seat reservation already ran.
+  if (typeof data !== 'string' || data.length === 0) {
+    return {
+      error:
+        'Booking succeeded but the server returned an invalid reference. Please contact support.',
+    }
+  }
+  return { bookingId: data }
 }
