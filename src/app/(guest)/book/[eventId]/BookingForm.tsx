@@ -23,6 +23,9 @@ export type { FormState, BookingAction, GuestDetail }
 
 // --- Helpers ---
 
+// Must mirror the regex in src/lib/validators.ts guestPhone
+const PHONE_RE = /^\+?[0-9\s\-]{7,20}$/
+
 function blankGuest(): GuestDetail {
   return {
     guest_name: '',
@@ -109,7 +112,11 @@ function validateStep(state: FormState): Record<string, string> {
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(state.contact.email)) {
       errors.email = 'Valid email required'
     }
-    if (!state.contact.phone.trim()) errors.phone = 'Required'
+    if (!state.contact.phone.trim()) {
+      errors.phone = 'Required'
+    } else if (!PHONE_RE.test(state.contact.phone)) {
+      errors.phone = 'Enter a valid phone number (digits, spaces, or hyphens only)'
+    }
   }
   return errors
 }

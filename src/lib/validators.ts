@@ -16,7 +16,10 @@ export const bookingSchema = z.object({
   // Phone is operationally required for day-of contact and is also marked
   // `required` in the StepContact UI. SG numbers are 8 digits but we accept
   // an optional country-code prefix and intervening spaces/dashes.
-  guestPhone: z.string().min(1, 'Phone number is required'),
+  guestPhone: z
+    .string()
+    .min(1, 'Phone number is required')
+    .regex(/^\+?[0-9\s\-]{7,20}$/, 'Enter a valid phone number (digits, spaces, or hyphens only)'),
   pax: z.number().int().min(1).max(16),
   wineOptIn: z.boolean().optional(),
   winePairingCount: z.number().int().min(0),
