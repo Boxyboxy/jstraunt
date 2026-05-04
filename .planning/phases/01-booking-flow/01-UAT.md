@@ -37,8 +37,8 @@ note: "Initially blocked by allowedDevOrigins issue (see Test 4). Re-verified pa
 
 ### 6. Step 3 — Contact Form
 expected: Step 3 renders 3 inputs: Name (autoComplete=name), Email (type=email), Phone (type=tel, placeholder "+65"). All required. Typing into each updates state. Going Back to Step 2 then forward returns the typed contact values.
-result: issue
-reported: "For Phone (type=tel, placeholder \"+65\"). No validation on number. alphabets are allowed"
+result: pass
+reported: "For Phone (type=tel, placeholder \"+65\"). No validation on number. alphabets are allowed. Resolved in plan 01-05"
 severity: major
 
 ### 7. Step 4 — Review & Edit Buttons
@@ -77,8 +77,8 @@ reason: "Optional test; covered indirectly by Zod schema (bookingSchema in actio
 ## Summary
 
 total: 14
-passed: 12
-issues: 1
+passed: 13
+issues: 0
 pending: 0
 skipped: 1
 blocked: 0
@@ -86,10 +86,11 @@ blocked: 0
 ## Gaps
 
 - truth: "Phone field accepts only valid phone numbers (digits, optional leading +, length appropriate for SG numbers)"
-  status: failed
+  status: closed
   reason: "User reported: For Phone (type=tel, placeholder \"+65\"). No validation on number. alphabets are allowed"
   severity: major
   test: 6
+  resolved_in: "01-05-PLAN.md"
   root_cause: "src/lib/validators.ts:19 — guestPhone uses only `z.string().min(1)` with no format constraint. Browser `type=tel` is a soft hint and does not validate. No client-side `pattern` attribute either. Result: any non-empty string (including alphabets) passes both client and server validation and is persisted to bookings.guest_phone."
   artifacts:
     - path: "src/lib/validators.ts:19"
