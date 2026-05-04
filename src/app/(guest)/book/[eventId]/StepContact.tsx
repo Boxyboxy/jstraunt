@@ -51,6 +51,8 @@ export default function StepContact({ contact, errors, dispatch }: StepContactPr
           id="contact_phone"
           label="Phone number"
           type="tel"
+          inputMode="tel"
+          pattern="^\+?[0-9\s\-]{7,20}$"
           required
           autoComplete="tel"
           value={contact.phone}
